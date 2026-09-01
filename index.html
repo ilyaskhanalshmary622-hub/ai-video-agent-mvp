@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI广告素材脚本与分镜助手</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="hero">
+      <p class="eyebrow">Operator-Grade MVP</p>
+      <h1>AI广告素材脚本与分镜助手</h1>
+      <p class="sub">
+        按投手、制片、AI视频执行三条线输出结果。除了脚本和提示词，还会给出测试假设、镜头任务、
+        产品一致性规则、首帧需求和投放风险。
+      </p>
+    </section>
+
+    <section class="layout">
+      <form id="generator-form" class="panel form-panel">
+        <div class="section-title">
+          <h2>项目输入</h2>
+          <span>更贴近真实素材生产</span>
+        </div>
+
+        <div class="group">
+          <h3>API 配置</h3>
+          <div id="api-mode-banner" class="api-banner">
+            当前模式检测中...
+          </div>
+
+          <label>
+            <span>OpenAI API Key</span>
+            <input name="apiKey" type="password" placeholder="sk-..." autocomplete="off">
+          </label>
+
+          <div class="grid two">
+            <label>
+              <span>提取模型</span>
+              <input name="visionModel" value="gpt-4.1-mini" placeholder="例：gpt-4.1-mini">
+            </label>
+
+            <label>
+              <span>生成模型</span>
+              <input name="generationModel" value="gpt-4.1-mini" placeholder="例：gpt-4.1-mini">
+            </label>
+          </div>
+
+          <small class="hint">如果服务端已配置环境变量，这里可以留空。手动填写的 Key 仅在当前页面使用，不会写入本地文件。</small>
+        </div>
+
+        <div class="group">
+          <h3>产品基础</h3>
+          <label>
+            <span>产品名称</span>
+            <input name="productName" required placeholder="例：海洋星空投影灯">
+          </label>
+
+          <label>
+            <span>产品类目</span>
+            <select name="category" required>
+              <option value="beauty">美妆个护</option>
+              <option value="home">家居日用</option>
+              <option value="tool">工具类 / 小工具</option>
+              <option value="ambient">氛围灯 / 装饰类</option>
+              <option value="cleaning">清洁类</option>
+              <option value="health">健康 / 保健类</option>
+              <option value="other">其他</option>
+            </select>
+          </label>
+
+          <label>
+            <span>产品描述</span>
+            <textarea name="description" rows="3" placeholder="外观、使用方式、适用场景、核心功能"></textarea>
+          </label>
+
+          <label>
+            <span>核心卖点</span>
+            <textarea name="sellingPoints" rows="3" required placeholder="可写 2-4 个卖点，用顿号或逗号分隔"></textarea>
+          </label>
+
+          <div class="grid two">
+            <label>
+              <span>价格带</span>
+              <select name="priceBand">
+                <option value="low">低价冲动购</option>
+                <option value="mid" selected>中价常规购</option>
+                <option value="high">高价谨慎购</option>
+              </select>
+            </label>
+
+            <label>
+              <span>内容目标</span>
+              <select name="goal">
+                <option value="高点击">高点击</option>
+                <option value="高停留">高停留</option>
+                <option value="种草">种草</option>
+                <option value="转化">转化</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            <span>目标用户</span>
+            <input name="targetAudience" placeholder="例：18-30岁女性，喜欢卧室改造和氛围感产品">
+          </label>
+
+          <label>
+            <span>用户痛点</span>
+            <input name="painPoint" placeholder="例：房间单调，没有氛围感，缺少夜晚情绪价值">
+          </label>
+        </div>
+
+        <div class="group">
+          <h3>投放与内容策略</h3>
+          <div class="grid two">
+            <label>
+              <span>目标平台</span>
+              <select name="platform">
+                <option value="TikTok">TikTok</option>
+                <option value="独立站">独立站</option>
+                <option value="TikTok + 独立站">TikTok + 独立站</option>
+                <option value="AppLovin">AppLovin</option>
+              </select>
+            </label>
+
+            <label>
+              <span>目标市场语言</span>
+              <select name="language">
+                <option value="英文">英文</option>
+                <option value="西班牙语">西班牙语</option>
+                <option value="德语">德语</option>
+                <option value="法语">法语</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="grid two">
+            <label>
+              <span>内容类型</span>
+              <select name="contentType">
+                <option value="测评型">测评型</option>
+                <option value="卖点直给型">卖点直给型</option>
+                <option value="剧情冲突型">剧情冲突型</option>
+                <option value="高质感展示型">高质感展示型</option>
+                <option value="对比型">对比型</option>
+              </select>
+            </label>
+
+            <label>
+              <span>内容形态</span>
+              <select name="creativeFormat">
+                <option value="UGC口播">UGC口播</option>
+                <option value="产品演示">产品演示</option>
+                <option value="剧情短视频">剧情短视频</option>
+                <option value="高质感商业感">高质感商业感</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="grid two">
+            <label>
+              <span>CTA 强度</span>
+              <select name="ctaStrength">
+                <option value="弱CTA">弱CTA</option>
+                <option value="中CTA" selected>中CTA</option>
+                <option value="强CTA">强CTA</option>
+              </select>
+            </label>
+
+            <label>
+              <span>视频时长</span>
+              <select name="duration">
+                <option value="6-10秒">6-10秒</option>
+                <option value="10-15秒" selected>10-15秒</option>
+                <option value="15-25秒">15-25秒</option>
+              </select>
+            </label>
+          </div>
+
+          <label>
+            <span>禁止表达 / 风险边界</span>
+            <input name="guardrails" placeholder="例：不要医疗疗效承诺，不要夸张假货感，不要露品牌侵权元素">
+          </label>
+
+          <label>
+            <span>竞品 / 对标素材描述</span>
+            <textarea name="competitorNotes" rows="3" placeholder="例：竞品主打 before/after，对标 TikTok 上的卧室改造投影灯素材，开头先给房间变化，再给产品近景。"></textarea>
+          </label>
+        </div>
+
+        <div class="group">
+          <h3>AI 执行输入</h3>
+          <label>
+            <span>产品一致性特征</span>
+            <textarea name="consistency" rows="3" placeholder="例：黑色半球灯罩、紫色金属底座、前侧双按键、桌面小体积"></textarea>
+          </label>
+
+          <label>
+            <span>产品图上传</span>
+            <input id="product-images" name="productImages" type="file" accept="image/*" multiple>
+            <small class="hint">可上传 1-4 张产品图，第一张默认作为首帧参考图。</small>
+          </label>
+
+          <div id="image-preview" class="image-preview empty">
+            <p>上传后这里会显示产品图预览。</p>
+          </div>
+
+          <label>
+            <span>参考素材上传</span>
+            <input id="reference-images" name="referenceImages" type="file" accept="image/*" multiple>
+            <small class="hint">可上传竞品封面、截图、参考风格图，用于辅助判断镜头语言和素材方向。</small>
+          </label>
+
+          <div id="reference-preview" class="image-preview empty">
+            <p>上传后这里会显示参考素材预览。</p>
+          </div>
+
+          <label>
+            <span>补充要求</span>
+            <textarea name="extra" rows="3" placeholder="例：偏欧美本地风格、首帧要强反差、产品必须稳定不跑偏"></textarea>
+          </label>
+        </div>
+
+        <div class="actions">
+          <button type="button" id="extract-product" class="secondary">识别产品图并回填</button>
+          <button type="submit">生成方案</button>
+          <button type="button" id="save-project" class="secondary ghost-dark">保存项目</button>
+          <button type="button" id="fill-demo" class="ghost">填入示例</button>
+          <button type="button" id="copy-markdown" class="ghost">复制 Markdown</button>
+        </div>
+      </form>
+
+      <section class="panel output-panel">
+        <div class="section-title">
+          <h2>投手 / 制片级输出</h2>
+          <span>包含测试假设、镜头级脚本、提示词和执行清单</span>
+        </div>
+        <div id="output" class="output empty">
+          <p>填写左侧信息后点击“生成方案”。</p>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>

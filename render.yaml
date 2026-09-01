@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: ai-video-agent-mvp
+    runtime: python
+    buildCommand: ""
+    startCommand: python server.py
+    plan: free
+    envVars:
+      - key: AI_VIDEO_AGENT_HOST
+        value: 0.0.0.0

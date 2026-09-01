@@ -1,0 +1,2 @@
+# stdlib-only server, kept for PaaS compatibility
+
