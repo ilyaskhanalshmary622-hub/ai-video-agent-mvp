@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>凯旋爆款拆解</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="page-glow page-glow-one"></div>
+  <div class="page-glow page-glow-two"></div>
+
+  <main class="page single-mode">
+    <section class="hero single-hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Operator-Grade Breakdown MVP</p>
+        <h1>凯旋爆款拆解</h1>
+        <p class="sub">
+          直接丢视频进来。系统会自动抽关键帧、自动生成视频概述，再输出拆解与复刻方案。
+        </p>
+        <div class="hero-pills">
+          <span class="hero-pill">自动抽帧</span>
+          <span class="hero-pill">自动概述</span>
+          <span class="hero-pill">爆款拆解</span>
+          <span class="hero-pill">AI 复刻</span>
+        </div>
+      </div>
+    </section>
+
+    <form id="generator-form" class="panel single-panel">
+      <input name="apiKey" type="hidden">
+      <input name="visionModel" type="hidden" value="gpt-4.1-mini">
+      <input name="generationModel" type="hidden" value="gpt-4.1-mini">
+      <input name="videoName" type="hidden">
+      <input name="platform" type="hidden" value="TikTok + AppLovin">
+      <input name="language" type="hidden" value="英文">
+      <input name="materialType" type="hidden" value="痛点测评型">
+      <input name="objective" type="hidden" value="高点击">
+      <input name="productType" type="hidden">
+      <input name="summary" type="hidden">
+      <input name="videoLink" type="hidden">
+      <input name="videoSource" type="hidden" value="本地上传">
+      <textarea name="narrative" hidden></textarea>
+      <textarea name="transcript" hidden></textarea>
+      <textarea name="hookGuess" hidden></textarea>
+      <textarea name="frameNotes" hidden></textarea>
+      <textarea name="focusRequest" hidden>重点拆前3秒钩子、镜头节奏、产品露出、CTA和AI复刻方式。</textarea>
+      <input name="guardrails" type="hidden" value="避免侵权品牌、明显虚假承诺和医疗疗效表达。">
+
+      <section class="upload-stage">
+        <div class="section-title centered">
+          <h2>上传视频</h2>
+          <span>只保留一个入口，其他信息全部自动补</span>
+        </div>
+
+        <label class="dropzone" for="video-files">
+          <input id="video-files" name="videoFiles" type="file" accept="video/*" multiple>
+          <div class="dropzone-copy">
+            <div class="dropzone-icon" aria-hidden="true"></div>
+            <strong>把爆款视频拖进来，或点击选择文件</strong>
+            <span>支持 1-3 个视频，默认取第 1 个做自动抽帧和拆解</span>
+          </div>
+        </label>
+
+        <div class="upload-meta">
+          <div class="upload-meta-card">
+            <span>输入方式</span>
+            <strong>只传视频</strong>
+          </div>
+          <div class="upload-meta-card">
+            <span>系统动作</span>
+            <strong>抽帧 + 概述 + 拆解</strong>
+          </div>
+          <div class="upload-meta-card">
+            <span>默认目标</span>
+            <strong>TikTok + AppLovin</strong>
+          </div>
+        </div>
+
+        <div id="video-preview" class="file-preview empty">
+          <p>上传后这里会显示视频文件信息。</p>
+        </div>
+
+        <div id="api-mode-banner" class="api-banner compact">当前模式检测中...</div>
+        <div id="run-status" class="run-status hidden" aria-live="polite"></div>
+
+        <div class="actions single-actions">
+          <button type="submit">开始拆解</button>
+          <button type="button" id="save-project" class="ghost-dark">保存项目</button>
+          <button type="button" id="copy-markdown" class="ghost">复制 Markdown</button>
+        </div>
+      </section>
+
+      <input id="reference-images" name="referenceImages" type="file" accept="image/*" multiple hidden>
+      <div id="reference-preview" hidden></div>
+      <button type="button" id="extract-frames" hidden>识别截图重点</button>
+      <button type="button" id="fill-demo" hidden>填入示例</button>
+    </form>
+
+    <section class="panel output-panel single-output-panel">
+      <div class="section-title">
+        <h2>拆解结果</h2>
+        <span>营销逻辑、逐秒分镜、AI 复刻提示词、超越版本建议</span>
+      </div>
+      <div id="output" class="output empty">
+        <p>上传视频后，点击“开始拆解”。</p>
+      </div>
+    </section>
+  </main>
+
+  <script src="./app.js"></script>
+</body>
+</html>
