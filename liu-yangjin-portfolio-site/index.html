@@ -4,378 +4,520 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>刘扬金 | AIGC 作品集</title>
+  <meta
+    name="description"
+    content="刘扬金的 AIGC 视觉设计、AI 视频创作、广告素材设计与工作流搭建作品集。"
+  >
   <link rel="stylesheet" href="./portfolio.css">
 </head>
 <body>
-  <div class="cursor-glow"></div>
-  <div class="ambient ambient-a"></div>
-  <div class="ambient ambient-b"></div>
-  <div class="grid-noise"></div>
+  <div class="noise-layer"></div>
+  <div class="spotlight"></div>
+  <div class="grid-layer"></div>
+  <div class="progress-rail"><span class="progress-rail-bar"></span></div>
 
   <header class="topbar">
-    <div class="brand">
+    <a class="brand" href="#home" aria-label="回到首页">
       <span class="brand-mark"></span>
-      <span>LIU YANGJIN / EXECUTIVE PORTFOLIO</span>
-    </div>
+      <span class="brand-copy">
+        <strong>LIU YANGJIN</strong>
+        <small>AIGC PORTFOLIO SYSTEM</small>
+      </span>
+    </a>
     <nav class="topnav">
-      <a href="#cover">首页</a>
+      <a href="#home">首页</a>
+      <a href="#proof">能力证明</a>
+      <a href="#work">精选项目</a>
+      <a href="#reel">视频作品</a>
       <a href="#resume">简历</a>
-      <a href="#projects">项目</a>
-      <a href="#videos">作品</a>
-      <a href="./assets_resume.pdf" target="_blank" rel="noreferrer">PDF 简历</a>
+      <a href="./assets_resume.pdf" target="_blank" rel="noreferrer">PDF</a>
     </nav>
   </header>
 
-  <main class="shell">
-    <section id="cover" class="cover-stage reveal">
-      <div class="cover-copy">
-        <p class="eyebrow">AIGC VISUAL / AI VIDEO / CREATIVE SYSTEM</p>
-        <p class="nameplate">刘扬金</p>
-        <p class="title-line">AIGC视觉设计师 / AI视频创作 / AI广告素材设计 / Agent与工作流搭建</p>
-        <h1>让 AI 内容生产<br>更快进入真正可交付阶段</h1>
-        <p class="hero-manifesto">聚焦跨境内容、短视频广告与 AIGC 工作流，把创意、生成、包装和执行衔接成一套可落地的方法。</p>
-        <p class="hero-text">
-          聚焦跨境电商、短视频广告与内容工业化生产，从脚本拆解、镜头设计、AI生成到成片包装与工作流搭建，持续输出可用于投放、展示和团队协作的内容结果。
+  <main class="page-shell">
+    <section id="home" class="hero reveal">
+      <div class="hero-copy">
+        <p class="eyebrow">AIGC VISUAL DESIGNER / AI VIDEO CREATOR / CREATIVE OPERATOR</p>
+        <p class="hero-name">刘扬金</p>
+        <p class="hero-role">AIGC视觉设计师｜AI视频创作｜AI广告素材设计</p>
+        <h1 class="hero-title">
+          内容创作｜视觉表达
+          <span>AI 视频与广告素材</span>
+        </h1>
+        <p class="hero-summary">
+          聚焦跨境电商、TikTok 素材与 AI 工作流落地，覆盖脚本拆解、分镜设计、画面生成、视频包装、爆款逻辑提炼、Agent 与自动化执行。
         </p>
         <div class="hero-actions">
-          <a class="btn btn-primary" href="#videos">查看视频作品</a>
-          <a class="btn btn-secondary" href="./assets_resume.pdf" target="_blank" rel="noreferrer">下载 PDF 简历</a>
+          <a class="action-btn action-primary magnetic" href="#reel">进入作品展厅</a>
+          <a class="action-btn action-ghost magnetic" href="./assets_resume.pdf" target="_blank" rel="noreferrer">查看 PDF 简历</a>
         </div>
+        <ul class="hero-tags">
+          <li>AI视频创作</li>
+          <li>AI广告素材设计</li>
+          <li>短视频创意制作</li>
+          <li>Agent 与工作流搭建</li>
+        </ul>
       </div>
 
-      <div class="cover-side">
-        <article class="hero-card interactive-card cover-card">
-          <p class="card-label">CURRENT PROFILE</p>
-          <div class="cover-grid">
-            <div class="stat-box">
-              <small>方向</small>
+      <div class="hero-stage">
+        <div class="stage-word stage-word-a" data-depth="0.16">PORTFOLIO</div>
+        <div class="stage-word stage-word-b" data-depth="0.08">CREATIVE SIGNAL / EXECUTION SYSTEM</div>
+        <article class="poster-card interactive-card" data-depth="0.2">
+          <div class="poster-halo"></div>
+          <div class="poster-frame">
+            <div class="poster-topline">
+              <span>VISUAL OPERATOR</span>
+              <span>LIVE SYSTEM</span>
+            </div>
+            <div class="poster-core" aria-hidden="true">
+              <div class="core-ring core-ring-a"></div>
+              <div class="core-ring core-ring-b"></div>
+              <div class="core-column core-column-a"></div>
+              <div class="core-column core-column-b"></div>
+              <div class="core-column core-column-c"></div>
+              <div class="core-pulse"></div>
+              <div class="core-scanline"></div>
+            </div>
+            <div class="poster-bottomline">
+              <p>HOOK / PACING / IMPACT / DELIVERY</p>
+              <p>FROM IDEA TO EXECUTION</p>
+            </div>
+          </div>
+        </article>
+        <div class="float-note note-a magnetic">TikTok / 独立站 / 跨境平台</div>
+        <div class="float-note note-b magnetic">视觉叙事 / 增长理解 / 工具落地</div>
+        <div class="float-note note-c magnetic">Prompt / Agent / Workflow / Delivery</div>
+      </div>
+    </section>
+
+    <section id="resume" class="resume-section reveal">
+      <div class="section-heading">
+        <p class="section-kicker">Resume Snapshot</p>
+        <h2>个人简介</h2>
+      </div>
+
+      <div class="resume-layout resume-layout-top">
+        <article class="resume-panel interactive-card">
+          <p class="resume-mini">CURRENT PROFILE</p>
+          <h3>AIGC视觉设计师 / AI视频创作 / AI广告素材设计 / 短视频创意制作</h3>
+          <p>
+            专注跨境电商与短视频场景的 AIGC 内容创作，具备 AI 视频制作、广告素材设计、短视频创意策划与视觉包装能力。能够围绕产品卖点独立完成从内容方向制定、脚本分镜、模型生成到后期成片的完整制作流程。
+          </p>
+          <div class="resume-meta-grid">
+            <div>
+              <span>年龄</span>
+              <strong>22岁</strong>
+            </div>
+            <div>
+              <span>城市</span>
+              <strong>深圳</strong>
+            </div>
+            <div>
+              <span>邮箱</span>
+              <strong>2056481944@qq.com</strong>
+            </div>
+            <div>
+              <span>方向</span>
               <strong>AIGC 内容生产</strong>
             </div>
-            <div class="stat-box">
-              <small>业务场景</small>
-              <strong>TikTok / 跨境平台</strong>
-            </div>
-            <div class="stat-box">
-              <small>核心能力</small>
-              <strong>AI 视频 + 工作流</strong>
-            </div>
-            <div class="stat-box">
-              <small>目标岗位</small>
-              <strong>AI视频 / AIGC设计</strong>
-            </div>
           </div>
         </article>
 
-        <article class="hero-card interactive-card signal-card">
-          <p class="card-label">EXECUTIVE SNAPSHOT</p>
-          <ul class="signal-list">
-            <li>具备 AIGC 内容从创意到成片的完整交付能力</li>
-            <li>熟悉视频模型、文生图模型、Agent 与自动化工作流</li>
-            <li>能同时理解素材投放、视觉审美和执行效率</li>
-          </ul>
+        <article class="resume-panel interactive-card">
+          <p class="resume-mini">VALUE TO TEAM</p>
+          <div class="value-list">
+            <div class="value-item">
+              <small>01</small>
+              <h3>能独立做完整内容链路</h3>
+              <p>从爆款拆解、脚本策划、分镜设计，到画面生成、剪辑包装、成片输出，不依赖单一环节。</p>
+            </div>
+            <div class="value-item">
+              <small>02</small>
+              <h3>懂内容，也懂平台节奏</h3>
+              <p>不是只会出图出视频，而是理解 TikTok、独立站、跨境平台的节奏、钩子和表达方式。</p>
+            </div>
+            <div class="value-item">
+              <small>03</small>
+              <h3>会工具，更会搭工作流</h3>
+              <p>能把 Prompt、Agent、自动化工具和执行流程串起来，减少沟通损耗，提高产出效率。</p>
+            </div>
+          </div>
         </article>
       </div>
     </section>
 
-    <section class="metrics-strip reveal">
-      <article class="metric-card interactive-card">
-        <span>01</span>
-        <strong>内容方向</strong>
-        <p>短视频广告、爆款拆解、AIGC视觉包装、创意脚本与分镜</p>
-      </article>
-      <article class="metric-card interactive-card">
-        <span>02</span>
-        <strong>工具矩阵</strong>
-        <p>即梦、可灵、Veo、Wan、Nano Banana、ChatGPT、Gemini、Coze、Codex</p>
-      </article>
-      <article class="metric-card interactive-card">
-        <span>03</span>
-        <strong>交付目标</strong>
-        <p>提升内容吸引力、生产效率、素材测试速度与团队协同能力</p>
-      </article>
+    <section class="career-section reveal">
+      <div class="section-heading">
+        <p class="section-kicker">Career</p>
+        <h2>工作经历与教育背景</h2>
+      </div>
+
+      <div class="resume-layout">
+        <article class="resume-panel interactive-card">
+          <p class="resume-mini">WORK EXPERIENCE</p>
+          <div class="career-list">
+            <div class="career-item">
+              <small>2025.11 - 至今</small>
+              <h3>深圳骏弘科技有限公司｜AI视频剪辑 / AIGC视觉设计师</h3>
+              <p>负责跨境电商产品 AI 视频创意策划、脚本拆解、画面生成、后期剪辑与成片交付，服务 TikTok、独立站及跨境平台内容场景。</p>
+            </div>
+            <div class="career-item">
+              <small>2025.07 - 2025.10</small>
+              <h3>深圳志会嘉科技有限公司｜AI设计师</h3>
+              <p>负责 AI 图像生成、短视频制作及设计需求支持，参与 TikTok 平台视频剪辑与视觉包装，提升内容产出效率与创意表现。</p>
+            </div>
+            <div class="career-item">
+              <small>2024.09 - 2025.01</small>
+              <h3>深圳奥萨医药有限公司｜平面设计实习生</h3>
+              <p>参与医药及保健品相关视觉内容设计，输出宣传物料、电商海报、详情页及推广视觉，并参与夫莱特品牌视觉优化项目。</p>
+            </div>
+          </div>
+        </article>
+
+        <article class="resume-panel interactive-card">
+          <p class="resume-mini">EDUCATION / TAGS</p>
+          <div class="career-list">
+            <div class="career-item">
+              <small>2021 - 2025</small>
+              <h3>大理大学｜视觉传达设计｜本科</h3>
+              <p>专业排名前 10%，主修平面设计、包装设计、标志设计、字体设计、版式设计。</p>
+            </div>
+            <div class="career-item">
+              <small>CORE TAGS</small>
+              <p>跨境电商内容制作、多模型协同出片、脚本策划与分镜拆解、广告素材创意测试、TikTok / 独立站内容适配、AI 工作流搭建与提效。</p>
+            </div>
+          </div>
+        </article>
+      </div>
     </section>
 
-    <section id="resume" class="resume-grid">
-      <article class="panel reveal interactive-card">
-        <div class="section-head">
-          <p class="kicker">Resume Snapshot</p>
-          <h2>个人概览</h2>
-        </div>
-        <p class="section-text">
-          具备 AIGC 内容生产与 AI 工作流落地能力，熟悉 AI 视频生成、AI 图片生成、爆款素材拆解、短视频脚本与分镜设计，能够结合 ChatGPT、Gemini、DeepSeek、Kimi、即梦、可灵、Veo、Coze、Codex 等工具完成多模型协同创作。
+    <section class="toolkit-section reveal">
+      <div class="section-heading">
+        <p class="section-kicker">Toolkit</p>
+        <h2>核心工具</h2>
+      </div>
+
+      <div class="toolkit-grid">
+        <article class="tool-group interactive-card">
+          <p class="resume-mini">AI 视频</p>
+          <div class="tool-list">
+            <div class="tool-chip"><img class="tool-logo" src="./tool_logos/veo.png" alt="Veo" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">V</span><b>Veo</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="./tool_logos/jimeng.ico" alt="即梦" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">即</span><b>即梦</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://klingai.com/favicon.ico" alt="可灵" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">可</span><b>可灵</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://hailuoai.com/favicon.ico" alt="H3" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">H3</span><b>H3</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://wan.video/favicon.ico" alt="Wan" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">W</span><b>Wan</b></div>
+          </div>
+        </article>
+
+        <article class="tool-group interactive-card">
+          <p class="resume-mini">AI 图片</p>
+          <div class="tool-list">
+            <div class="tool-chip"><img class="tool-logo" src="https://openai.com/favicon.ico" alt="Nano Banana" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">NB</span><b>Nano Banana</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://openai.com/favicon.ico" alt="image2" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">I2</span><b>image2</b></div>
+          </div>
+        </article>
+
+        <article class="tool-group interactive-card">
+          <p class="resume-mini">大模型</p>
+          <div class="tool-list">
+            <div class="tool-chip"><img class="tool-logo" src="https://openai.com/favicon.ico" alt="ChatGPT" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">G</span><b>ChatGPT</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="./tool_logos/veo.png" alt="Gemini" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">Ge</span><b>Gemini</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="./tool_logos/deepseek.ico" alt="DeepSeek" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">DS</span><b>DeepSeek</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="./tool_logos/kimi.ico" alt="Kimi" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">K</span><b>Kimi</b></div>
+          </div>
+        </article>
+
+        <article class="tool-group interactive-card">
+          <p class="resume-mini">Agent / 自动化</p>
+          <div class="tool-list">
+            <div class="tool-chip"><img class="tool-logo" src="https://openai.com/favicon.ico" alt="Codex" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">C</span><b>Codex</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="./tool_logos/coze.ico" alt="Coze" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">扣</span><b>Coze</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://flowgpt.com/favicon.ico" alt="Flow" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">F</span><b>Flow</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://www.lovart.ai/favicon.ico" alt="Lovart" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">L</span><b>Lovart</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://platform.openai.com/favicon.ico" alt="Function Call" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">FC</span><b>Function Call</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://platform.openai.com/favicon.ico" alt="RAG" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">R</span><b>RAG</b></div>
+          </div>
+        </article>
+
+        <article class="tool-group interactive-card">
+          <p class="resume-mini">设计 / 后期</p>
+          <div class="tool-list">
+            <div class="tool-chip"><img class="tool-logo" src="https://www.adobe.com/favicon.ico" alt="Photoshop" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">Ps</span><b>Photoshop</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://www.figma.com/favicon.ico" alt="Figma" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">Fg</span><b>Figma</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="./tool_logos/jianying.ico" alt="剪映" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">剪</span><b>剪映</b></div>
+            <div class="tool-chip"><img class="tool-logo" src="https://elevenlabs.io/favicon.ico" alt="ElevenLabs" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-flex';"><span class="tool-fallback">11</span><b>ElevenLabs</b></div>
+          </div>
+        </article>
+
+        <article class="tool-group interactive-card">
+          <p class="resume-mini">方法能力</p>
+          <div class="tool-list">
+            <div class="tool-chip"><b>脚本策划</b></div>
+            <div class="tool-chip"><b>分镜拆解</b></div>
+            <div class="tool-chip"><b>爆款钩子</b></div>
+            <div class="tool-chip"><b>工作流搭建</b></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section id="proof" class="proof-grid reveal">
+      <article class="proof-card proof-manifest interactive-card">
+        <p class="section-kicker">Positioning</p>
+        <h2>能力概览</h2>
+        <p>
+          我做的不只是漂亮画面，而是围绕产品卖点、用户情绪、平台节奏和广告逻辑，把 AI 生成真正推进到可复用、可协作、可交付的生产链路里。
         </p>
-        <div class="info-grid">
-          <div>
-            <span>年龄</span>
-            <strong>22 岁</strong>
-          </div>
-          <div>
-            <span>求职城市</span>
-            <strong>深圳</strong>
-          </div>
-          <div>
-            <span>邮箱</span>
-            <strong>2056481944@qq.com</strong>
-          </div>
-          <div>
-            <span>定位</span>
-            <strong>AIGC 复合型人才</strong>
-          </div>
+      </article>
+
+      <article class="proof-card proof-metrics interactive-card">
+        <div class="metric-item">
+          <span>01</span>
+          <strong>内容方向</strong>
+          <p>剧情流量素材、测评素材、广告脚本、分镜逆向拆解、视觉包装。</p>
+        </div>
+        <div class="metric-item">
+          <span>02</span>
+          <strong>工具矩阵</strong>
+          <p>即梦、可灵、Veo、H3、Wan、Nano Banana、image2、ChatGPT、Gemini、Coze、Codex。</p>
+        </div>
+        <div class="metric-item">
+          <span>03</span>
+          <strong>交付价值</strong>
+          <p>提高内容产出速度、创意密度、素材测试效率与团队协作标准化程度。</p>
         </div>
       </article>
 
-      <article class="panel reveal interactive-card">
-        <div class="section-head">
-          <p class="kicker">Capability Matrix</p>
-          <h2>技能矩阵</h2>
-        </div>
-        <div class="skills-cloud">
-          <span>即梦</span>
-          <span>可灵</span>
-          <span>Veo</span>
-          <span>H3</span>
-          <span>Wan</span>
-          <span>Nano Banana</span>
-          <span>image2</span>
-          <span>ChatGPT</span>
-          <span>Gemini</span>
-          <span>DeepSeek</span>
-          <span>Kimi</span>
-          <span>Coze</span>
-          <span>Flow</span>
-          <span>Lovart</span>
-          <span>ElevenLabs</span>
-          <span>Codex</span>
+      <article class="proof-card proof-stack interactive-card">
+        <p class="section-kicker">Capability Stack</p>
+        <div class="stack-cloud">
+          <span>AI 视频生成</span>
+          <span>AI 图片生成</span>
           <span>Prompt Engineering</span>
           <span>Function Call</span>
           <span>RAG</span>
           <span>Agent</span>
-          <span>Photoshop</span>
+          <span>创意脚本</span>
+          <span>爆款拆解</span>
+          <span>视觉包装</span>
+          <span>后期剪辑</span>
           <span>Figma</span>
+          <span>Photoshop</span>
+          <span>ElevenLabs</span>
+          <span>Coze</span>
+          <span>Flow</span>
+          <span>Lovart</span>
         </div>
       </article>
     </section>
 
-    <section class="timeline-section panel reveal interactive-card">
-      <div class="section-head">
-        <p class="kicker">Career Timeline</p>
-        <h2>工作经历</h2>
-      </div>
-      <div class="timeline">
-        <article class="timeline-item">
-          <div class="timeline-mark"></div>
-          <div class="timeline-body">
-            <p class="timeline-time">2025.11 - 至今</p>
-            <h3>深圳骏弘科技有限公司｜AIGC视觉设计师 / AI视频创作</h3>
-            <ul>
-              <li>负责跨境电商产品的 AI 视频创意策划、脚本拆解、画面生成、后期剪辑与成片交付。</li>
-              <li>围绕产品卖点输出 TikTok / 独立站 / 跨境平台素材，覆盖痛点型、对比型、剧情型、种草型内容方向。</li>
-              <li>持续优化钩子、镜头节奏、字幕包装与视觉表达，提升素材吸引力与平台适配度。</li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="timeline-item">
-          <div class="timeline-mark"></div>
-          <div class="timeline-body">
-            <p class="timeline-time">2025.07 - 2025.10</p>
-            <h3>深圳志会嘉科技有限公司｜AI设计师</h3>
-            <ul>
-              <li>负责 AI 图像生成、短视频制作与设计需求支持，提升视觉内容产出效率。</li>
-              <li>参与 TikTok 平台视频剪辑与视觉包装，根据内容风格和用户偏好优化节奏、封面与字幕。</li>
-              <li>支持亚马逊运营制作产品图片、展示视频及相关视觉素材。</li>
-            </ul>
-          </div>
-        </article>
-
-        <article class="timeline-item">
-          <div class="timeline-mark"></div>
-          <div class="timeline-body">
-            <p class="timeline-time">2024.09 - 2025.01</p>
-            <h3>深圳奥萨医药有限公司｜平面设计实习生</h3>
-            <ul>
-              <li>参与医药及保健品相关视觉内容设计，输出宣传物料、电商海报、详情页及推广视觉。</li>
-              <li>基于产品成分、功效及人群提炼核心卖点，优化信息层级与页面表达。</li>
-              <li>参与夫莱特品牌视觉优化项目，负责品牌页面、产品展示与推广素材设计。</li>
-            </ul>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section id="projects" class="projects-section">
-      <div class="section-head reveal">
-        <p class="kicker">Selected Work</p>
-        <h2>项目与作品集</h2>
+    <section id="work" class="showcase-section reveal">
+      <div class="section-heading">
+        <p class="section-kicker">Selected Work</p>
+        <h2>精选项目</h2>
       </div>
 
       <div class="project-grid">
         <article
-          class="project-card panel reveal interactive-card project-trigger"
+          class="project-card interactive-card project-trigger"
           data-title="凯旋爆款拆解"
-          data-type="Agent / Workflow"
-          data-summary="面向短视频投手与素材团队的爆款视频拆解工作台，支持视频上传、自动抽帧、自动概括、逐段拆解与 AI 复刻提示词输出。"
-          data-points="视频自动抽关键帧|爆款结构拆解与镜头任务归纳|支持 AI 复刻与二创方向输出"
-          data-role="产品定义、页面规划、工作流梳理、提示词结构设计"
-          data-value="把原本依赖人工描述的视频拆解流程，升级成更像真正助手的半自动工作台。"
+          data-type="Agent / Creative Analysis"
+          data-summary="面向短视频投手与素材团队的爆款视频拆解工作台，围绕视频上传、关键帧抽取、结构分析、镜头拆解与 AI 复刻提示词输出搭建。"
+          data-points="支持视频拆解工作流|把爆款素材逻辑结构化沉淀|服务后续二创、复刻与脚本再生产"
+          data-role="产品定义、页面结构、提示词框架、拆解逻辑设计"
+          data-value="把原本靠人工描述的拆解动作，升级成更接近真实内容助手的工作台"
         >
-          <p class="project-type">Agent / Workflow</p>
+          <p class="project-index">PROJECT 01</p>
           <h3>凯旋爆款拆解</h3>
-          <p>
-            面向短视频投手与素材团队的爆款视频拆解工作台，支持视频上传、自动抽帧、自动概括、逐段拆解与 AI 复刻提示词输出。
-          </p>
-          <ul>
-            <li>视频自动抽关键帧</li>
-            <li>爆款结构拆解与镜头任务归纳</li>
-            <li>支持 AI 复刻与二创方向输出</li>
-          </ul>
-          <button class="ghost-btn" type="button">查看详情</button>
+          <p>把“看懂爆款”这件事，做成可执行、可复刻、可二创的工作流。</p>
+          <button class="ghost-link" type="button">查看项目细节</button>
         </article>
 
         <article
-          class="project-card panel reveal interactive-card project-trigger"
+          class="project-card interactive-card project-trigger"
           data-title="跨境短视频广告素材生产"
           data-type="AI Video Production"
           data-summary="围绕 TikTok 与跨境平台内容需求，完成产品脚本策划、AI 视频生成、字幕包装、风格统一与多版本测试素材制作。"
-          data-points="高点击钩子设计|剧情型 / 测评型 / 对比型内容输出|多模型协同生成与后期整合"
-          data-role="创意策划、提示词设计、分镜把控、视觉包装"
-          data-value="把 AI 生成内容真正对齐到广告素材生产，不只是展示型视频。"
+          data-points="高点击钩子设计|剧情型/测评型/对比型内容输出|多模型协同生成与后期整合"
+          data-role="创意策划、分镜设计、提示词编排、视觉包装"
+          data-value="把 AI 生成内容真正对齐到广告素材生产，而不是只做展示感视频"
         >
-          <p class="project-type">AI Video Production</p>
+          <p class="project-index">PROJECT 02</p>
           <h3>跨境短视频广告素材生产</h3>
-          <p>
-            围绕 TikTok 与跨境平台内容需求，完成产品脚本策划、AI 视频生成、字幕包装、风格统一与多版本测试素材制作。
-          </p>
-          <ul>
-            <li>高点击钩子设计</li>
-            <li>剧情型 / 测评型 / 对比型内容输出</li>
-            <li>多模型协同生成与后期整合</li>
-          </ul>
-          <button class="ghost-btn" type="button">查看详情</button>
+          <p>更偏结果导向，关注停留、点击、节奏推进与卖点放大。</p>
+          <button class="ghost-link" type="button">查看项目细节</button>
         </article>
 
         <article
-          class="project-card panel reveal interactive-card project-trigger"
-          data-title="AI广告素材脚本与分镜助手"
-          data-type="AIGC Design"
-          data-summary="把产品卖点、图片与平台目标转成结构化内容方案，输出脚本、分镜、提示词、测试变量和执行清单。"
-          data-points="产品卖点结构化提取|脚本与分镜自动生成|内容测试矩阵与执行逻辑沉淀"
-          data-role="需求梳理、页面设计、内容结构设计、落地逻辑定义"
-          data-value="让脚本和分镜输出更标准化，减少团队沟通成本，提高内容生产稳定性。"
+          class="project-card interactive-card project-trigger"
+          data-title="AI 广告脚本与分镜系统"
+          data-type="Creative System"
+          data-summary="把产品卖点、目标市场、视觉风格、角色设定和平台目标，转成结构化脚本、分镜与执行清单。"
+          data-points="产品信息结构化|镜头任务拆分|提示词标准化|测试变量沉淀"
+          data-role="内容架构设计、流程拆分、执行规则定义"
+          data-value="让脚本和分镜不只好看，而且更适合团队复用与批量生产"
         >
-          <p class="project-type">AIGC Design</p>
-          <h3>AI广告素材脚本与分镜助手</h3>
-          <p>
-            把产品卖点、图片与平台目标转成结构化内容方案，输出脚本、分镜、提示词、测试变量和执行清单。
-          </p>
-          <ul>
-            <li>产品卖点结构化提取</li>
-            <li>脚本与分镜自动生成</li>
-            <li>内容测试矩阵与执行逻辑沉淀</li>
-          </ul>
-          <button class="ghost-btn" type="button">查看详情</button>
+          <p class="project-index">PROJECT 03</p>
+          <h3>AI 广告脚本与分镜系统</h3>
+          <p>强化创意方法论，把随机灵感变成稳定输出机制。</p>
+          <button class="ghost-link" type="button">查看项目细节</button>
         </article>
       </div>
     </section>
 
-    <section id="videos" class="videos-showcase reveal">
-      <div class="section-head">
-        <p class="kicker">Video Showcase</p>
-        <h2>视频作品墙</h2>
+    <section id="reel" class="reel-section reveal">
+      <div class="section-heading">
+        <p class="section-kicker">Showreel</p>
+        <h2>视频作品与案例板</h2>
       </div>
 
-      <div class="video-stage panel interactive-card">
-        <div class="video-player-wrap">
-          <video controls preload="metadata" poster="./portfolio_media/watergun_thumb.jpg">
-            <source src="./portfolio_media/watergun_mix_web.mp4" type="video/mp4">
-          </video>
+      <div class="media-console interactive-card">
+        <div class="console-view">
+          <div class="console-frame">
+            <video
+              id="featured-video"
+              class="featured-media is-active"
+              controls
+              preload="metadata"
+              poster="./portfolio_media/watergun_thumb.jpg"
+            >
+              <source src="./portfolio_media/watergun_mix_web.mp4" type="video/mp4">
+            </video>
+            <img
+              id="featured-image"
+              class="featured-media"
+              src="./portfolio_media/board_watergun.png"
+              alt="作品预览图"
+            >
+            <div class="console-overlay">
+              <span>FEATURED</span>
+              <span id="media-kind">VIDEO</span>
+            </div>
+          </div>
         </div>
-        <div class="video-copy">
-          <p class="video-label">Featured Work</p>
-          <h3>高压水枪剧情混剪素材</h3>
-          <p>
-            这条更适合作为首页主打作品。它的优势不是“精致”，而是冲突直给、钩子明显、画面记忆点强，能直接证明我理解海外短视频广告的停留逻辑和情绪节奏。
+
+        <aside class="console-copy">
+          <p class="section-kicker">Current Selection</p>
+          <h3 id="media-title">高压水枪剧情混剪素材</h3>
+          <p id="media-description">
+            这条更适合作为首页主打作品。优势不在“精致感”，而在冲突直给、钩子明显、画面记忆点强，能直接证明我理解海外短视频广告的停留逻辑和情绪节奏。
           </p>
-          <div class="video-points">
+          <div class="media-tags" id="media-tags">
             <span>强钩子开场</span>
             <span>剧情反差</span>
             <span>产品卖点放大</span>
             <span>流量型素材节奏</span>
           </div>
-        </div>
+        </aside>
       </div>
 
-      <div class="video-wall">
-        <article class="video-wall-card panel interactive-card">
-          <img class="video-wall-cover-image" src="./portfolio_media/sun03_thumb.jpg" alt="sun03 preview">
-          <div class="video-wall-body">
-            <p class="video-label">Work 01</p>
-            <h3>美护方向视频案例</h3>
-            <p>更适合放在补充案例区，证明我不仅会做剧情流量素材，也能处理美护类视觉表达、卖点放大和转化语境。</p>
+      <div class="media-grid">
+        <button
+          class="media-card interactive-card is-active"
+          type="button"
+          data-media-type="video"
+          data-media-src="./portfolio_media/watergun_mix_web.mp4"
+          data-media-poster="./portfolio_media/watergun_thumb.jpg"
+          data-media-title="高压水枪剧情混剪素材"
+          data-media-description="这条更适合作为首页主打作品。优势不在“精致感”，而在冲突直给、钩子明显、画面记忆点强，能直接证明我理解海外短视频广告的停留逻辑和情绪节奏。"
+          data-media-tags="强钩子开场|剧情反差|产品卖点放大|流量型素材节奏"
+        >
+          <img src="./portfolio_media/watergun_thumb.jpg" alt="高压水枪视频封面">
+          <div>
+            <p>VIDEO 01</p>
+            <h3>高压水枪混剪</h3>
           </div>
-        </article>
-        <article class="video-wall-card panel interactive-card">
-          <img class="video-wall-cover-image" src="./portfolio_media/board_watergun.png" alt="watergun storyboard">
-          <div class="video-wall-body">
-            <p class="video-label">Work 02</p>
-            <h3>水枪剧情分镜策划板</h3>
-            <p>这类图最能证明你不只是“会剪”，而是懂冲突设计、角色关系、镜头推进和节奏控制。</p>
+        </button>
+
+        <button
+          class="media-card interactive-card"
+          type="button"
+          data-media-type="video"
+          data-media-src="./portfolio_media/sun03.mp4"
+          data-media-poster="./portfolio_media/sun03_thumb.jpg"
+          data-media-title="美护方向视频案例"
+          data-media-description="补充案例区更适合放这条，用来证明我不仅会做剧情流量素材，也能处理美护类表达、卖点放大与转化语境。"
+          data-media-tags="美护方向|卖点表达|镜头统一|视觉包装"
+        >
+          <img src="./portfolio_media/sun03_thumb.jpg" alt="美护方向视频封面">
+          <div>
+            <p>VIDEO 02</p>
+            <h3>美护案例</h3>
           </div>
-        </article>
-        <article class="video-wall-card panel interactive-card">
-          <img class="video-wall-cover-image" src="./portfolio_media/board_grandpa.png" alt="grandpa storyboard">
-          <div class="video-wall-body">
-            <p class="video-label">Work 03</p>
-            <h3>分镜方法论展示</h3>
-            <p>把角色、钩子、产品和镜头节奏拆成可执行画板，这种过程展示对招聘方很有说服力。</p>
+        </button>
+
+        <button
+          class="media-card interactive-card"
+          type="button"
+          data-media-type="image"
+          data-media-src="./portfolio_media/board_watergun.png"
+          data-media-title="水枪剧情分镜策划板"
+          data-media-description="这类图最能证明我不只是会剪，而是理解冲突设计、角色关系、镜头推进和节奏控制。"
+          data-media-tags="角色对立|3秒钩子|产品反转|分镜规划"
+        >
+          <img src="./portfolio_media/board_watergun.png" alt="水枪剧情分镜策划板">
+          <div>
+            <p>BOARD 01</p>
+            <h3>水枪分镜板</h3>
           </div>
-        </article>
+        </button>
+
+        <button
+          class="media-card interactive-card"
+          type="button"
+          data-media-type="image"
+          data-media-src="./portfolio_media/board_grandpa.png"
+          data-media-title="爷爷反转剧情分镜板"
+          data-media-description="把人物、冲突、产品和节奏拆成执行板，对招聘方来说非常直观，能直接看到方法论。"
+          data-media-tags="反转剧情|画面板|角色任务|执行可视化"
+        >
+          <img src="./portfolio_media/board_grandpa.png" alt="爷爷反转剧情分镜板">
+          <div>
+            <p>BOARD 02</p>
+            <h3>反转剧情板</h3>
+          </div>
+        </button>
+
+        <button
+          class="media-card interactive-card"
+          type="button"
+          data-media-type="image"
+          data-media-src="./portfolio_media/board_mom.png"
+          data-media-title="家庭反应式投影剧情"
+          data-media-description="更适合展示 3 秒钩子、角色反应、产品介入与成片节奏拆解能力。"
+          data-media-tags="家庭冲突|惊讶反应|投影卖点|短剧节奏"
+        >
+          <img src="./portfolio_media/board_mom.png" alt="家庭反应式投影剧情">
+          <div>
+            <p>BOARD 03</p>
+            <h3>投影剧情板</h3>
+          </div>
+        </button>
+
+        <button
+          class="media-card interactive-card"
+          type="button"
+          data-media-type="image"
+          data-media-src="./portfolio_media/board_lights.png"
+          data-media-title="情绪反转类微剧情"
+          data-media-description="更能展示氛围塑造、人物情绪推进和剧情翻车式钩子的设计能力。"
+          data-media-tags="情绪推进|反转|氛围灯光|轻喜剧"
+        >
+          <img src="./portfolio_media/board_lights.png" alt="情绪反转类微剧情">
+          <div>
+            <p>BOARD 04</p>
+            <h3>灯带剧情板</h3>
+          </div>
+        </button>
       </div>
     </section>
 
-    <section class="storyboard-section reveal">
-      <div class="section-head">
-        <p class="kicker">Storyboard System</p>
-        <h2>分镜方法论样例</h2>
-      </div>
-      <div class="storyboard-grid">
-        <article class="storyboard-card panel interactive-card">
-          <img src="./portfolio_media/board_mom.png" alt="妈妈投影分镜">
-          <div class="storyboard-copy">
-            <p class="video-label">Board 01</p>
-            <h3>家庭反应式投影剧情</h3>
-            <p>适合体现 3 秒钩子、角色反应、产品反转和成片节奏拆解能力。</p>
-          </div>
-        </article>
-        <article class="storyboard-card panel interactive-card">
-          <img src="./portfolio_media/board_lights.png" alt="卧室灯带分镜">
-          <div class="storyboard-copy">
-            <p class="video-label">Board 02</p>
-            <h3>情绪反转类微剧情</h3>
-            <p>更能展示氛围塑造、人物情绪推进和剧情翻车式钩子的设计能力。</p>
-          </div>
-        </article>
-      </div>
-    </section>
-
-    <section class="education-section panel reveal interactive-card">
-      <div class="section-head">
-        <p class="kicker">Education</p>
-        <h2>教育经历</h2>
-      </div>
-      <p class="section-text">
-        大理大学｜视觉传达设计｜本科｜2021 - 2025
-      </p>
-      <p class="section-text muted">
-        专业排名前 10%，主修：平面设计、包装设计、标志设计、字体设计、版式设计。
-      </p>
-    </section>
   </main>
 
   <div class="project-modal" aria-hidden="true">
     <div class="modal-backdrop" data-close-modal></div>
     <div class="modal-panel">
-      <button class="modal-close" type="button" data-close-modal>×</button>
+      <button class="modal-close magnetic" type="button" data-close-modal aria-label="关闭">×</button>
       <p class="modal-type"></p>
       <h3 class="modal-title"></h3>
       <p class="modal-summary"></p>
