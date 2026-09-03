@@ -1155,10 +1155,59 @@ body::before {
   .topbar {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
+    padding: 14px 0;
+  }
+
+  .topnav {
+    width: 100%;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .topnav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .topnav a {
+    flex: 0 0 auto;
+    white-space: nowrap;
+  }
+
+  .hero {
+    gap: 18px;
+    padding-top: 18px;
+  }
+
+  .hero-copy {
+    order: 1;
+  }
+
+  .hero-stage {
+    order: 2;
+    min-height: 280px;
   }
 
   .hero-title {
     font-size: clamp(16px, 4.2vw, 22px);
+  }
+
+  .hero-name {
+    font-size: clamp(28px, 8vw, 38px);
+    letter-spacing: 0.06em;
+  }
+
+  .hero-role {
+    font-size: clamp(16px, 4.6vw, 22px);
+    line-height: 1.35;
+  }
+
+  .hero-summary {
+    margin-top: 18px;
+    font-size: 15px;
+    line-height: 1.7;
   }
 
   .proof-manifest h2,
@@ -1178,12 +1227,33 @@ body::before {
   }
 
   .hero-stage {
-    min-height: 520px;
+    min-height: 280px;
   }
 
   .poster-card {
-    inset: 7rem 0 auto;
+    inset: 0;
     width: 100%;
+    aspect-ratio: 16 / 9;
+    padding: 12px;
+  }
+
+  .poster-frame {
+    padding: 16px;
+  }
+
+  .poster-core {
+    width: 58%;
+  }
+
+  .poster-topline,
+  .poster-bottomline {
+    font-size: 9px;
+    letter-spacing: 0.18em;
+  }
+
+  .stage-word-a,
+  .stage-word-b {
+    display: none;
   }
 
   .note-a,
@@ -1192,6 +1262,9 @@ body::before {
     position: static;
     margin-top: 14px;
     width: fit-content;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    padding: 10px 12px;
   }
 
   .hero-actions {
@@ -1203,8 +1276,47 @@ body::before {
   .proof-card,
   .project-card,
   .resume-panel,
-  .modal-panel {
+  .modal-panel,
+  .tool-group {
     padding: 20px;
+  }
+
+  .project-card {
+    min-height: 20rem;
+  }
+
+  .media-card {
+    padding: 10px;
+  }
+
+  .media-card img {
+    aspect-ratio: 16 / 11;
+  }
+
+  .console-copy h3,
+  .resume-panel h3,
+  .project-card h3,
+  .value-item h3 {
+    font-size: 22px;
+  }
+
+  .tool-list {
+    gap: 10px;
+  }
+
+  .tool-chip {
+    min-height: 44px;
+    padding: 8px 12px 8px 8px;
+  }
+
+  .tool-chip b {
+    font-size: 12px;
+  }
+
+  .tool-logo,
+  .tool-fallback {
+    width: 24px;
+    height: 24px;
   }
 
   .spotlight {
