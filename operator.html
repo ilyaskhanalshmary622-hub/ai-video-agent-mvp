@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>OPX运营助手</title>
+  <link rel="stylesheet" href="./operator.css">
+</head>
+<body>
+  <div class="cursor-light"></div>
+  <main class="opx-shell">
+    <aside class="command-side">
+      <div class="brand">
+        <span class="brand-mark">OPX</span>
+        <div>
+          <strong>OPX运营助手</strong>
+          <small>Facebook / Meta 跨境投放指挥台</small>
+        </div>
+      </div>
+
+      <nav class="page-tabs" aria-label="页面切换">
+        <button class="tab-btn active" type="button" data-page="overview">总览</button>
+        <button class="tab-btn" type="button" data-page="campaign">投放数据</button>
+        <button class="tab-btn" type="button" data-page="creative">素材复盘</button>
+        <button class="tab-btn" type="button" data-page="diagnosis">诊断指令</button>
+        <button class="tab-btn" type="button" data-page="brief">素材 Brief</button>
+      </nav>
+
+      <div class="operator-note">
+        <span>核心用途</span>
+        <p>把 Facebook 跨境投放数据转成可执行动作：是否加预算、是否关组、素材怎么改、下一批怎么测。</p>
+      </div>
+    </aside>
+
+    <section class="workbench">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Global Ad Control System</p>
+          <h1>OPX运营助手</h1>
+        </div>
+        <div class="top-actions">
+          <button id="load-demo" type="button">填入示例</button>
+          <button id="reset-form" type="button">重置</button>
+          <button id="copy-result" type="button">复制结论</button>
+        </div>
+      </header>
+
+      <form id="ops-form">
+        <section class="page-view active" data-page-panel="overview">
+          <div class="mission-grid">
+            <article class="mission-card map-card">
+              <div class="world-map" aria-hidden="true">
+                <span class="pulse us"></span>
+                <span class="pulse eu"></span>
+                <span class="pulse sea"></span>
+                <span class="route route-a"></span>
+                <span class="route route-b"></span>
+              </div>
+              <div class="map-copy">
+                <p class="eyebrow">Market Focus</p>
+                <h2>中国团队做海外 Facebook 跨境投放</h2>
+                <p>按国家、利润、素材阶段和广告指标一起判断，避免只看单个后台数字。</p>
+              </div>
+            </article>
+
+            <article class="mission-card status-card">
+              <span>默认平台</span>
+              <strong>Facebook / Instagram</strong>
+              <small>Meta Ads 跨境电商素材复盘</small>
+            </article>
+            <article class="mission-card status-card">
+              <span>核心动作</span>
+              <strong>关停 / 放量 / 换素材</strong>
+              <small>输出给运营和素材团队的执行指令</small>
+            </article>
+            <article class="mission-card status-card">
+              <span>判断维度</span>
+              <strong>数据 + 利润 + 素材变量</strong>
+              <small>从点击到成交完整看链路</small>
+            </article>
+          </div>
+        </section>
+
+        <section class="page-view" data-page-panel="campaign">
+          <div class="section-title">
+            <h2>投放数据</h2>
+            <p>重点适配 Facebook / Instagram 跨境广告账户。</p>
+          </div>
+          <div class="input-grid">
+            <label>
+              <span>产品名称</span>
+              <input name="productName" placeholder="例：高压清洁水枪">
+            </label>
+            <label>
+              <span>产品类目</span>
+              <input name="category" placeholder="例：百货 / 家居清洁">
+            </label>
+            <label>
+              <span>目标市场</span>
+              <select name="market">
+                <option>美国</option>
+                <option>英国</option>
+                <option>加拿大</option>
+                <option>澳洲</option>
+                <option>东南亚</option>
+                <option>中东</option>
+                <option>欧洲</option>
+              </select>
+            </label>
+            <label>
+              <span>投放平台</span>
+              <select name="platform">
+                <option>Facebook / Instagram</option>
+                <option>Facebook</option>
+                <option>Instagram Reels</option>
+                <option>Meta Advantage+</option>
+                <option>TikTok</option>
+                <option>AppLovin</option>
+              </select>
+            </label>
+            <label>
+              <span>投放阶段</span>
+              <select name="stage">
+                <option>冷启动测试</option>
+                <option>起量观察</option>
+                <option>稳定放量</option>
+                <option>疲劳衰退</option>
+              </select>
+            </label>
+            <label>
+              <span>投放目标</span>
+              <select name="objective">
+                <option>控 CPA</option>
+                <option>提高 ROAS</option>
+                <option>放量</option>
+                <option>拉点击</option>
+              </select>
+            </label>
+            <label>
+              <span>花费</span>
+              <input name="spend" type="number" min="0" step="0.01" placeholder="500">
+            </label>
+            <label>
+              <span>曝光</span>
+              <input name="impressions" type="number" min="0" step="1" placeholder="80000">
+            </label>
+            <label>
+              <span>点击</span>
+              <input name="clicks" type="number" min="0" step="1" placeholder="1200">
+            </label>
+            <label>
+              <span>订单 / 转化</span>
+              <input name="conversions" type="number" min="0" step="1" placeholder="35">
+            </label>
+            <label>
+              <span>销售额</span>
+              <input name="revenue" type="number" min="0" step="0.01" placeholder="1500">
+            </label>
+            <label>
+              <span>目标 CPA</span>
+              <input name="targetCpa" type="number" min="0" step="0.01" placeholder="15">
+            </label>
+            <label>
+              <span>商品售价</span>
+              <input name="price" type="number" min="0" step="0.01" placeholder="39.99">
+            </label>
+            <label>
+              <span>综合成本</span>
+              <input name="cost" type="number" min="0" step="0.01" placeholder="13">
+            </label>
+            <label>
+              <span>昨日 CTR</span>
+              <input name="previousCtr" type="number" min="0" step="0.01" placeholder="1.8">
+            </label>
+            <label>
+              <span>频次</span>
+              <input name="frequency" type="number" min="0" step="0.01" placeholder="2.3">
+            </label>
+          </div>
+          <button class="primary-command" type="submit">生成诊断</button>
+        </section>
+
+        <section class="page-view" data-page-panel="creative">
+          <div class="section-title">
+            <h2>素材复盘</h2>
+            <p>拆开头、产品露出、信任证明和落地页承接。</p>
+          </div>
+          <div class="input-grid">
+            <label>
+              <span>素材类型</span>
+              <select name="creativeType">
+                <option>剧情冲突型</option>
+                <option>痛点测评型</option>
+                <option>Before / After</option>
+                <option>UGC 口播型</option>
+                <option>产品演示型</option>
+                <option>视觉爽感型</option>
+              </select>
+            </label>
+            <label>
+              <span>前三秒钩子</span>
+              <select name="hookStrength">
+                <option>强：冲突/反差/结果很直给</option>
+                <option>中：能看懂但不够刺激</option>
+                <option>弱：铺垫多，信息慢</option>
+              </select>
+            </label>
+            <label>
+              <span>产品露出</span>
+              <select name="productTiming">
+                <option>0-3 秒露出</option>
+                <option>3-6 秒露出</option>
+                <option>6 秒后露出</option>
+                <option>露出不清楚</option>
+              </select>
+            </label>
+            <label>
+              <span>信任证明</span>
+              <select name="trustLevel">
+                <option>强：近景细节/真实对比/评论回应</option>
+                <option>中：有展示但证据不够</option>
+                <option>弱：只有口号或夸张效果</option>
+              </select>
+            </label>
+            <label>
+              <span>落地页承接</span>
+              <select name="landingMatch">
+                <option>强：首屏承接素材痛点</option>
+                <option>中：卖点一致但表达不同</option>
+                <option>弱：点击后感觉换了一个产品</option>
+              </select>
+            </label>
+            <label>
+              <span>评论反馈</span>
+              <select name="commentSignal">
+                <option>有人问价格/购买方式</option>
+                <option>有人质疑真实性</option>
+                <option>有人讨论使用场景</option>
+                <option>评论少或无有效反馈</option>
+              </select>
+            </label>
+          </div>
+          <label class="wide-field">
+            <span>素材描述 / 运营观察</span>
+            <textarea name="creativeNotes" placeholder="例：前 3 秒点击不错，但中段产品可信度弱；评论有人质疑是否真实有效。"></textarea>
+          </label>
+          <label class="upload-box">
+            <input id="creative-file" name="creativeFile" type="file" accept="image/*,video/*">
+            <span>上传素材截图或视频</span>
+            <strong id="file-name">未选择文件</strong>
+          </label>
+        </section>
+
+        <section class="page-view" data-page-panel="diagnosis">
+          <div id="scoreboard" class="scoreboard">
+            <article><span>CTR</span><strong>-</strong><small>点击率</small></article>
+            <article><span>CVR</span><strong>-</strong><small>转化率</small></article>
+            <article><span>CPC</span><strong>-</strong><small>点击成本</small></article>
+            <article><span>CPA</span><strong>-</strong><small>转化成本</small></article>
+            <article><span>ROAS</span><strong>-</strong><small>广告回报</small></article>
+            <article><span>毛利 CPA</span><strong>-</strong><small>可承受线</small></article>
+          </div>
+          <section id="diagnosis" class="diagnosis-panel empty">
+            <h2>诊断指令</h2>
+            <p>生成后这里会出现生命周期判断、问题定位、预算动作和账户操作建议。</p>
+          </section>
+        </section>
+
+        <section class="page-view" data-page-panel="brief">
+          <section id="brief-output" class="diagnosis-panel empty">
+            <h2>下一轮素材 Brief</h2>
+            <p>生成后这里会出现给素材团队或 AI 视频创作者看的下一批测试方向。</p>
+          </section>
+        </section>
+      </form>
+    </section>
+  </main>
+
+  <script src="./operator.js"></script>
+</body>
+</html>
