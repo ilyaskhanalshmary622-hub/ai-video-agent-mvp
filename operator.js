@@ -42,7 +42,13 @@ const demo = {
   trustLevel: "中：有展示但证据不够",
   landingMatch: "中：卖点一致但表达不同",
   commentSignal: "有人讨论使用场景",
-  creativeNotes: "前三秒有家庭冲突和强反差，点击不错；中段产品证明偏弱，需要补近景、真实操作和评论型疑问回应。"
+  creativeNotes: "前三秒有家庭冲突和强反差，点击不错；中段产品证明偏弱，需要补近景、真实操作和评论型疑问回应。",
+  spyUrl: "https://app.ppspy.com/zh/ads/2b143a83c63f56c774ab1ea27a5292aa",
+  spyStatus: "疑似在跑量",
+  spyStructure: "痛点冲突 + 产品解决 + 结果展示",
+  spyHook: "强：一眼知道冲突或结果",
+  spyCopyLevel: "高：结构可复制，画面要重做",
+  spyNotes: "PPSPY 竞品链接可作为参考来源。重点记录广告标题、产品价格、投放地区、素材首帧、评论质疑点和落地页承接。"
 };
 
 const emptyDiagnosis = `
@@ -124,13 +130,14 @@ function generateReport() {
   const bottlenecks = judgeBottlenecks(data, metrics);
   const budgetAction = judgeBudgetAction(data, metrics, bottlenecks);
   const creativeAudit = auditCreative(data, metrics);
+  const spyAudit = auditCompetitor(data);
   const brief = buildNextBrief(data, metrics, bottlenecks);
   const platformNotes = buildPlatformNotes(data);
   const finalCall = buildFinalCall(data, metrics, bottlenecks);
 
   renderScoreboard(metrics);
   updateHomeTicker(metrics, bottlenecks);
-  renderDiagnosis({ data, metrics, lifecycle, bottlenecks, budgetAction, creativeAudit, platformNotes, finalCall });
+  renderDiagnosis({ data, metrics, lifecycle, bottlenecks, budgetAction, creativeAudit, spyAudit, platformNotes, finalCall });
   renderBrief({ data, brief });
 
   lastReportText = [
@@ -140,7 +147,8 @@ function generateReport() {
     `生命周期：${lifecycle.title}`,
     `预算动作：${budgetAction.title}`,
     `主要问题：${bottlenecks.map((item) => item.title).join("；") || "暂未发现明显硬伤"}`,
-    `下一轮素材：${brief.map((item) => item.title).join("；")}`
+    `下一轮素材：${brief.map((item) => item.title).join("；")}`,
+    `竞品参考：${spyAudit.title}｜${spyAudit.items.join("；")}`
   ].join("\n");
 
   switchPage("diagnosis");
@@ -399,6 +407,62 @@ function auditCreative(data, metrics) {
   ];
 }
 
+function auditCompetitor(data) {
+  if (!data.spyUrl && !data.spyNotes) {
+    return {
+      title: "未录入竞品情报",
+      items: ["建议把 PPSPY / BigSpy / Meta Ad Library 里的广告链接、标题、首帧和评论疑问录入后再判断。"]
+    };
+  }
+
+  const items = [];
+  const status = data.spyStatus || "不确定";
+  const structure = data.spyStructure || "未填写结构";
+  const hook = data.spyHook || "未填写首帧";
+  const copyLevel = data.spyCopyLevel || "未填写可复制等级";
+
+  if (status.includes("长期投放") || status.includes("跑量")) {
+    items.push("优先拆它的底层结构：长期或疑似跑量素材通常说明账户已经验证过点击和转化。");
+  } else if (status.includes("已停投")) {
+    items.push("不要直接照抄，先判断它是测失败停投，还是阶段性素材疲劳。");
+  } else {
+    items.push("投放状态不确定时，只能当作创意参考，不能当作爆款结论。");
+  }
+
+  if (structure.includes("痛点冲突")) {
+    items.push("可复制路径：前 1 秒给痛点现场，3 秒内让产品介入，结尾用结果画面收口。");
+  } else if (structure.includes("UGC")) {
+    items.push("可复制路径：口播不要像广告，要像用户吐槽和实测，核心是可信度。");
+  } else if (structure.includes("Before")) {
+    items.push("可复制路径：强化对比证据，画面要有同角度、同环境、同产品动作。");
+  } else {
+    items.push(`可复制路径：保留“${structure}”的节奏，换成本产品的真实使用场景。`);
+  }
+
+  if (hook.startsWith("强")) {
+    items.push("首帧可以借鉴节奏，但人物、场景、台词和构图必须重做，避免像搬运。");
+  } else {
+    items.push("首帧不够强，别学它的开头，只学卖点或证明方式。");
+  }
+
+  if (copyLevel.startsWith("高")) {
+    items.push("执行建议：做 3 个同结构变体，分别换人群、冲突场景和产品露出时机。");
+  } else if (copyLevel.startsWith("中")) {
+    items.push("执行建议：只借钩子或卖点，不要完整复刻分镜。");
+  } else {
+    items.push("执行建议：不要进入制作，先找更接近你产品的竞品素材。");
+  }
+
+  if (data.spyNotes) {
+    items.push(`备注提炼：${data.spyNotes}`);
+  }
+
+  return {
+    title: data.spyUrl ? "已录入竞品广告链接" : "已录入竞品信息",
+    items
+  };
+}
+
 function buildNextBrief(data, metrics, issues) {
   const product = data.productName || "该产品";
   const category = data.category || "当前类目";
@@ -496,7 +560,7 @@ function renderScoreboard(metrics) {
 }
 
 function renderDiagnosis(report) {
-  const { data, metrics, lifecycle, bottlenecks, budgetAction, creativeAudit, platformNotes, finalCall } = report;
+  const { data, metrics, lifecycle, bottlenecks, budgetAction, creativeAudit, spyAudit, platformNotes, finalCall } = report;
 
   diagnosis.className = `diagnosis-panel ${budgetAction.level}`;
   diagnosis.innerHTML = `
@@ -509,6 +573,7 @@ function renderDiagnosis(report) {
       ${block("预算动作", budgetAction.title, budgetAction.steps, budgetAction.level)}
       ${block("问题定位", "当前主要卡点", bottlenecks.map((item) => `${item.title}：${item.detail}`), "watch large")}
       ${block("素材审核", data.creativeType || "未填写素材类型", creativeAudit.map((item) => `${item.title}：${item.detail}`), "large")}
+      ${block("竞品情报", spyAudit.title, spyAudit.items, "large")}
       ${block("Meta 操盘提醒", "Facebook / Instagram 跨境投放", platformNotes, "large")}
       ${block("最终判断", finalCall, [`CPM ${formatMoney(metrics.cpm)}｜频次 ${formatNumber(metrics.frequency)}｜CTR 跌幅 ${formatPercent(Math.max(metrics.ctrDrop, 0))}`], budgetAction.level)}
     </div>

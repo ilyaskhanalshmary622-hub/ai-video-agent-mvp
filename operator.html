@@ -22,6 +22,7 @@
         <button class="tab-btn active" type="button" data-page="overview">总览</button>
         <button class="tab-btn" type="button" data-page="campaign">投放数据</button>
         <button class="tab-btn" type="button" data-page="creative">素材复盘</button>
+        <button class="tab-btn" type="button" data-page="spy">竞品情报</button>
         <button class="tab-btn" type="button" data-page="diagnosis">诊断指令</button>
         <button class="tab-btn" type="button" data-page="brief">素材 Brief</button>
       </nav>
@@ -311,6 +312,76 @@
             <span>上传素材截图或视频</span>
             <strong id="file-name">未选择文件</strong>
           </label>
+        </section>
+
+        <section class="page-view" data-page-panel="spy">
+          <div class="section-title">
+            <h2>竞品情报</h2>
+            <p>适配 PPSPY / BigSpy / Meta Ad Library，用来反推爆款素材和落地页打法。</p>
+          </div>
+          <div class="spy-console">
+            <label class="wide-field">
+              <span>竞品广告链接</span>
+              <input name="spyUrl" placeholder="例：https://app.ppspy.com/zh/ads/xxxx">
+            </label>
+            <div class="input-grid">
+              <label>
+                <span>广告状态</span>
+                <select name="spyStatus">
+                  <option>疑似在跑量</option>
+                  <option>刚起量</option>
+                  <option>长期投放</option>
+                  <option>已停投</option>
+                  <option>不确定</option>
+                </select>
+              </label>
+              <label>
+                <span>素材结构</span>
+                <select name="spyStructure">
+                  <option>痛点冲突 + 产品解决 + 结果展示</option>
+                  <option>UGC 口播 + 产品证明</option>
+                  <option>Before / After 强对比</option>
+                  <option>剧情反转 + 低门槛购买</option>
+                  <option>纯产品演示</option>
+                </select>
+              </label>
+              <label>
+                <span>首帧强度</span>
+                <select name="spyHook">
+                  <option>强：一眼知道冲突或结果</option>
+                  <option>中：能懂但不够尖</option>
+                  <option>弱：铺垫慢，没有停留点</option>
+                </select>
+              </label>
+              <label>
+                <span>可复制等级</span>
+                <select name="spyCopyLevel">
+                  <option>高：结构可复制，画面要重做</option>
+                  <option>中：只能借钩子和卖点</option>
+                  <option>低：不适合当前产品</option>
+                </select>
+              </label>
+            </div>
+            <label class="wide-field">
+              <span>你看到的广告信息</span>
+              <textarea name="spyNotes" placeholder="复制广告标题、文案、产品卖点、评论反馈、投放地区、落地页价格、你看到的画面重点。"></textarea>
+            </label>
+            <div class="spy-checklist">
+              <article>
+                <strong>抄结构，不抄画面</strong>
+                <span>保留节奏和心理触发点，人物、场景、台词必须换。</span>
+              </article>
+              <article>
+                <strong>看投放时间</strong>
+                <span>长期在跑的素材，比短期爆量更值得拆。</span>
+              </article>
+              <article>
+                <strong>看评论问题</strong>
+                <span>用户质疑点就是下一条素材的选题。</span>
+              </article>
+            </div>
+          </div>
+          <button class="primary-command" type="submit">生成竞品拆解</button>
         </section>
 
         <section class="page-view" data-page-panel="diagnosis">

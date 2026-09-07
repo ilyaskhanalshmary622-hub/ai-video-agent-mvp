@@ -639,6 +639,54 @@ h3 {
   font-style: normal;
 }
 
+.spy-console {
+  display: grid;
+  gap: 16px;
+}
+
+.spy-console .wide-field {
+  padding: 16px;
+  border: 1px solid rgba(45, 212, 191, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, rgba(45, 212, 191, 0.06), transparent 42%),
+    rgba(5, 10, 17, 0.6);
+}
+
+.spy-checklist {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.spy-checklist article {
+  min-height: 120px;
+  padding: 16px;
+  border: 1px solid rgba(129, 151, 177, 0.16);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(79, 140, 255, 0.12), transparent 38%),
+    rgba(255, 255, 255, 0.035);
+  transition: transform 0.22s ease, border-color 0.22s ease;
+}
+
+.spy-checklist article:hover {
+  transform: translateY(-5px);
+  border-color: rgba(45, 212, 191, 0.38);
+}
+
+.spy-checklist strong {
+  display: block;
+  margin-bottom: 10px;
+  color: var(--text);
+  font-size: 18px;
+}
+
+.spy-checklist span {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
 @keyframes radarSpin {
   to {
     transform: translate(-50%, -50%) rotate(360deg);
@@ -1037,7 +1085,7 @@ textarea:focus {
   }
 
   .page-tabs {
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: repeat(6, minmax(0, 1fr));
   }
 
   .mission-grid,
@@ -1084,7 +1132,8 @@ textarea:focus {
   .top-actions,
   .page-tabs,
   .input-grid,
-  .scoreboard {
+  .scoreboard,
+  .spy-checklist {
     grid-template-columns: 1fr;
   }
 
