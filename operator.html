@@ -47,36 +47,98 @@
 
       <form id="ops-form">
         <section class="page-view active" data-page-panel="overview">
-          <div class="mission-grid">
-            <article class="mission-card map-card">
-              <div class="world-map" aria-hidden="true">
+          <div class="ops-dashboard">
+            <article class="mission-card globe-card">
+              <div class="digital-globe" aria-hidden="true">
+                <span class="orbit orbit-a"></span>
+                <span class="orbit orbit-b"></span>
+                <span class="orbit orbit-c"></span>
                 <span class="pulse us"></span>
                 <span class="pulse eu"></span>
                 <span class="pulse sea"></span>
                 <span class="route route-a"></span>
                 <span class="route route-b"></span>
+                <span class="route route-c"></span>
               </div>
-              <div class="map-copy">
-                <p class="eyebrow">Market Focus</p>
-                <h2>中国团队做海外 Facebook 跨境投放</h2>
-                <p>按国家、利润、素材阶段和广告指标一起判断，避免只看单个后台数字。</p>
+              <div class="globe-copy">
+                <p class="eyebrow">OPX GLOBAL CONTROL</p>
+                <h2>Facebook 跨境投放盘面</h2>
+                <p>把广告后台、利润线、素材表现和下一步动作放在同一个指挥面板里看。</p>
               </div>
             </article>
 
-            <article class="mission-card status-card">
-              <span>默认平台</span>
-              <strong>Facebook / Instagram</strong>
-              <small>Meta Ads 跨境电商素材复盘</small>
+            <article class="mission-card market-tape">
+              <div class="tape-head">
+                <span>Live Signal</span>
+                <strong>今日账户信号</strong>
+              </div>
+              <div class="ticker-row">
+                <span>CTR</span>
+                <strong id="home-ctr">待输入</strong>
+                <em class="up">Hook</em>
+              </div>
+              <div class="ticker-row">
+                <span>CPA</span>
+                <strong id="home-cpa">待输入</strong>
+                <em class="watch">Cost</em>
+              </div>
+              <div class="ticker-row">
+                <span>ROAS</span>
+                <strong id="home-roas">待输入</strong>
+                <em class="up">Profit</em>
+              </div>
+              <div class="ticker-row">
+                <span>频次</span>
+                <strong id="home-frequency">待输入</strong>
+                <em class="watch">Fatigue</em>
+              </div>
             </article>
-            <article class="mission-card status-card">
-              <span>核心动作</span>
-              <strong>关停 / 放量 / 换素材</strong>
-              <small>输出给运营和素材团队的执行指令</small>
+
+            <article class="mission-card risk-radar">
+              <span class="radar-ring"></span>
+              <span class="radar-sweep"></span>
+              <div>
+                <p class="eyebrow">Risk Radar</p>
+                <h3 id="home-risk">等待数据</h3>
+                <p id="home-risk-note">输入投放数据后，自动判断能不能放量、该不该关组、问题在素材还是转化。</p>
+              </div>
             </article>
-            <article class="mission-card status-card">
-              <span>判断维度</span>
-              <strong>数据 + 利润 + 素材变量</strong>
-              <small>从点击到成交完整看链路</small>
+
+            <article class="mission-card command-list">
+              <p class="eyebrow">Daily Workflow</p>
+              <h3>每天该看什么</h3>
+              <ol>
+                <li>先看 CTR：判断首帧和钩子有没有资格继续烧。</li>
+                <li>再看 CPA / ROAS：判断是否触碰利润线。</li>
+                <li>最后看素材信号：决定换人设、换场景还是换落地页承接。</li>
+              </ol>
+            </article>
+
+            <article class="mission-card asset-board">
+              <div class="board-head">
+                <span>Creative Queue</span>
+                <strong>下一批素材测试池</strong>
+              </div>
+              <div class="asset-line">
+                <b>01</b>
+                <span>强冲突首帧</span>
+                <em>优先</em>
+              </div>
+              <div class="asset-line">
+                <b>02</b>
+                <span>真实测评证据</span>
+                <em>必补</em>
+              </div>
+              <div class="asset-line">
+                <b>03</b>
+                <span>评论质疑回应</span>
+                <em>放量</em>
+              </div>
+              <div class="asset-line">
+                <b>04</b>
+                <span>Reels 快节奏版</span>
+                <em>变体</em>
+              </div>
             </article>
           </div>
         </section>

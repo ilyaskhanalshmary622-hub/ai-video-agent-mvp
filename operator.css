@@ -297,10 +297,358 @@ h3 {
   gap: 14px;
 }
 
+.ops-dashboard {
+  display: grid;
+  grid-template-columns: minmax(360px, 1.35fr) minmax(280px, 0.65fr);
+  gap: 16px;
+}
+
 .mission-card {
   min-height: 190px;
   padding: 18px;
   overflow: hidden;
+}
+
+.globe-card {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(320px, 1fr) minmax(260px, 0.66fr);
+  gap: 24px;
+  min-height: 430px;
+  background:
+    radial-gradient(circle at 31% 46%, rgba(45, 212, 191, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(9, 18, 30, 0.98), rgba(7, 9, 13, 0.96));
+}
+
+.globe-card::before {
+  content: "META ADS / GLOBAL SIGNAL / CREATIVE FLOW / CPA / ROAS";
+  position: absolute;
+  left: 18px;
+  right: 18px;
+  bottom: 18px;
+  height: 34px;
+  overflow: hidden;
+  border-top: 1px solid rgba(45, 212, 191, 0.22);
+  color: rgba(45, 212, 191, 0.34);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.26em;
+  line-height: 34px;
+  white-space: nowrap;
+  animation: tickerMove 14s linear infinite;
+}
+
+.digital-globe {
+  position: relative;
+  min-height: 370px;
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  border-radius: 28px;
+  background:
+    linear-gradient(90deg, rgba(45, 212, 191, 0.11) 1px, transparent 1px),
+    linear-gradient(rgba(79, 140, 255, 0.09) 1px, transparent 1px),
+    radial-gradient(circle at center, rgba(45, 212, 191, 0.2), transparent 37%),
+    radial-gradient(circle at center, rgba(79, 140, 255, 0.18), transparent 48%),
+    #07111b;
+  background-size: 34px 34px, 34px 34px, auto, auto, auto;
+  box-shadow: inset 0 0 42px rgba(45, 212, 191, 0.08), 0 26px 70px rgba(0, 0, 0, 0.38);
+}
+
+.digital-globe::before,
+.digital-globe::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgba(45, 212, 191, 0.24);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.digital-globe::before {
+  width: 280px;
+  height: 280px;
+  box-shadow: inset 0 0 60px rgba(45, 212, 191, 0.08);
+}
+
+.digital-globe::after {
+  width: 170px;
+  height: 300px;
+  border-color: rgba(79, 140, 255, 0.22);
+}
+
+.orbit {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.13);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) rotate(var(--rotate));
+}
+
+.orbit-a {
+  width: 310px;
+  height: 96px;
+  --rotate: -18deg;
+}
+
+.orbit-b {
+  width: 315px;
+  height: 122px;
+  --rotate: 24deg;
+}
+
+.orbit-c {
+  width: 220px;
+  height: 330px;
+  --rotate: 90deg;
+}
+
+.digital-globe .pulse.us {
+  left: 29%;
+  top: 42%;
+}
+
+.digital-globe .pulse.eu {
+  left: 50%;
+  top: 35%;
+}
+
+.digital-globe .pulse.sea {
+  left: 68%;
+  top: 59%;
+}
+
+.digital-globe .route-a {
+  left: 31%;
+  top: 45%;
+  width: 22%;
+}
+
+.digital-globe .route-b {
+  left: 51%;
+  top: 39%;
+  width: 20%;
+}
+
+.digital-globe .route-c {
+  left: 36%;
+  top: 63%;
+  width: 38%;
+  transform: rotate(-26deg);
+}
+
+.globe-copy {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  align-content: center;
+}
+
+.globe-copy h2 {
+  margin: 0 0 12px;
+  font-size: clamp(34px, 4vw, 58px);
+  line-height: 0.98;
+  letter-spacing: -0.05em;
+}
+
+.globe-copy p {
+  max-width: 320px;
+  color: var(--muted);
+  line-height: 1.75;
+}
+
+.market-tape,
+.risk-radar,
+.command-list,
+.asset-board {
+  min-height: 0;
+}
+
+.market-tape {
+  display: grid;
+  gap: 10px;
+  align-content: start;
+  background: linear-gradient(180deg, rgba(45, 212, 191, 0.08), rgba(255, 255, 255, 0.025));
+}
+
+.tape-head,
+.board-head {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.tape-head span,
+.board-head span {
+  color: var(--cyan);
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.ticker-row {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 74px;
+  align-items: center;
+  min-height: 42px;
+  padding: 0 10px;
+  border: 1px solid rgba(129, 151, 177, 0.14);
+  border-radius: 12px;
+  background: rgba(6, 11, 18, 0.72);
+  transition: transform 0.22s ease, border-color 0.22s ease;
+}
+
+.ticker-row:hover {
+  transform: translateX(6px);
+  border-color: rgba(45, 212, 191, 0.38);
+}
+
+.ticker-row span {
+  color: var(--weak);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.ticker-row strong {
+  color: var(--text);
+  font-size: 19px;
+}
+
+.ticker-row em {
+  justify-self: end;
+  min-width: 58px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-style: normal;
+  font-weight: 900;
+  text-align: center;
+}
+
+.ticker-row .up {
+  color: #063c2c;
+  background: rgba(45, 212, 191, 0.88);
+}
+
+.ticker-row .watch {
+  color: #442705;
+  background: rgba(245, 158, 11, 0.9);
+}
+
+.risk-radar {
+  position: relative;
+  min-height: 240px;
+  display: grid;
+  place-items: center;
+  text-align: center;
+}
+
+.risk-radar > div {
+  position: relative;
+  z-index: 1;
+  max-width: 300px;
+}
+
+.risk-radar h3 {
+  margin: 8px 0;
+  font-size: 30px;
+}
+
+.risk-radar p {
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.radar-ring,
+.radar-sweep {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.radar-ring {
+  width: 170px;
+  height: 170px;
+  border: 1px solid rgba(45, 212, 191, 0.26);
+  box-shadow: 0 0 0 36px rgba(45, 212, 191, 0.035), 0 0 0 72px rgba(79, 140, 255, 0.02);
+}
+
+.radar-sweep {
+  width: 180px;
+  height: 180px;
+  background: conic-gradient(from 0deg, rgba(45, 212, 191, 0.48), transparent 42%);
+  opacity: 0.45;
+  animation: radarSpin 4s linear infinite;
+}
+
+.command-list {
+  grid-column: span 1;
+}
+
+.command-list h3 {
+  margin: 8px 0 14px;
+  font-size: 26px;
+}
+
+.command-list ol {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--muted);
+  line-height: 1.85;
+}
+
+.asset-board {
+  grid-column: 1 / -1;
+}
+
+.asset-line {
+  display: grid;
+  grid-template-columns: 54px minmax(0, 1fr) 86px;
+  align-items: center;
+  min-height: 54px;
+  border-top: 1px solid rgba(129, 151, 177, 0.14);
+  transition: background 0.22s ease, padding-left 0.22s ease;
+}
+
+.asset-line:hover {
+  padding-left: 12px;
+  background: rgba(45, 212, 191, 0.055);
+}
+
+.asset-line b {
+  color: var(--cyan);
+  font-size: 13px;
+}
+
+.asset-line span {
+  font-weight: 800;
+}
+
+.asset-line em {
+  justify-self: end;
+  padding: 5px 11px;
+  border: 1px solid rgba(45, 212, 191, 0.22);
+  border-radius: 999px;
+  color: var(--cyan);
+  font-size: 12px;
+  font-style: normal;
+}
+
+@keyframes radarSpin {
+  to {
+    transform: translate(-50%, -50%) rotate(360deg);
+  }
+}
+
+@keyframes tickerMove {
+  to {
+    text-indent: -240px;
+  }
 }
 
 .map-card {
@@ -693,12 +1041,18 @@ textarea:focus {
   }
 
   .mission-grid,
+  .ops-dashboard,
   .map-card,
+  .globe-card,
   .diagnosis-grid {
     grid-template-columns: 1fr;
   }
 
   .map-card {
+    grid-column: auto;
+  }
+
+  .asset-board {
     grid-column: auto;
   }
 
@@ -749,6 +1103,14 @@ textarea:focus {
   .map-copy {
     padding-left: 0;
     padding-top: 16px;
+  }
+
+  .globe-copy h2 {
+    font-size: 34px;
+  }
+
+  .digital-globe {
+    min-height: 300px;
   }
 
   .map-copy h2 {

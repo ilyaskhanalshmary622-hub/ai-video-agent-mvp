@@ -10,6 +10,12 @@ const copyResult = document.querySelector("#copy-result");
 const tabs = document.querySelectorAll(".tab-btn");
 const panels = document.querySelectorAll("[data-page-panel]");
 const cursorLight = document.querySelector(".cursor-light");
+const homeCtr = document.querySelector("#home-ctr");
+const homeCpa = document.querySelector("#home-cpa");
+const homeRoas = document.querySelector("#home-roas");
+const homeFrequency = document.querySelector("#home-frequency");
+const homeRisk = document.querySelector("#home-risk");
+const homeRiskNote = document.querySelector("#home-risk-note");
 
 let lastReportText = "";
 
@@ -100,6 +106,12 @@ form.addEventListener("submit", (event) => {
   generateReport();
 });
 
+form.addEventListener("input", () => {
+  const data = Object.fromEntries(new FormData(form).entries());
+  const metrics = getMetrics(data);
+  updateHomeTicker(metrics, judgeBottlenecks(data, metrics));
+});
+
 function switchPage(page) {
   tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.page === page));
   panels.forEach((panel) => panel.classList.toggle("active", panel.dataset.pagePanel === page));
@@ -117,6 +129,7 @@ function generateReport() {
   const finalCall = buildFinalCall(data, metrics, bottlenecks);
 
   renderScoreboard(metrics);
+  updateHomeTicker(metrics, bottlenecks);
   renderDiagnosis({ data, metrics, lifecycle, bottlenecks, budgetAction, creativeAudit, platformNotes, finalCall });
   renderBrief({ data, brief });
 
@@ -131,6 +144,50 @@ function generateReport() {
   ].join("\n");
 
   switchPage("diagnosis");
+}
+
+function updateHomeTicker(metrics, bottlenecks = []) {
+  homeCtr.textContent = formatPercent(metrics.ctr);
+  homeCpa.textContent = formatMoney(metrics.cpa);
+  homeRoas.textContent = formatNumber(metrics.roas);
+  homeFrequency.textContent = formatNumber(metrics.frequency);
+
+  if (!metrics.spend && !metrics.impressions && !metrics.clicks) {
+    homeRisk.textContent = "等待数据";
+    homeRiskNote.textContent = "输入投放数据后，自动判断能不能放量、该不该关组、问题在素材还是转化。";
+    return;
+  }
+
+  const profitRisk = bottlenecks.some((item) => item.type === "profit");
+  const creativeRisk = bottlenecks.some((item) => item.type === "creative");
+  const conversionRisk = bottlenecks.some((item) => item.type === "conversion" || item.type === "landing");
+
+  if (profitRisk) {
+    homeRisk.textContent = "红色风险";
+    homeRiskNote.textContent = "利润线已被 CPA 打穿，先降预算或关停亏损组。";
+    return;
+  }
+
+  if (metrics.roas >= 2.2 && metrics.cpa <= safeCpa(metrics)) {
+    homeRisk.textContent = "可放量";
+    homeRiskNote.textContent = "当前具备小步加预算资格，同步扩素材池防疲劳。";
+    return;
+  }
+
+  if (creativeRisk) {
+    homeRisk.textContent = "先修素材";
+    homeRiskNote.textContent = "首帧点击不够，问题优先在钩子和画面冲突。";
+    return;
+  }
+
+  if (conversionRisk) {
+    homeRisk.textContent = "先修承接";
+    homeRiskNote.textContent = "点击能进来但转化弱，重点查落地页首屏和信任证明。";
+    return;
+  }
+
+  homeRisk.textContent = "观察中";
+  homeRiskNote.textContent = "数据没有明显硬伤，继续看 24 小时波动和评论信号。";
 }
 
 function getMetrics(data) {
@@ -524,3 +581,4 @@ function formatSize(bytes) {
 }
 
 renderScoreboard(null);
+updateHomeTicker(getMetrics({}), []);
