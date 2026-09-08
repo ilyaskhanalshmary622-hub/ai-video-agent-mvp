@@ -123,7 +123,7 @@ function switchPage(page) {
   panels.forEach((panel) => panel.classList.toggle("active", panel.dataset.pagePanel === page));
 }
 
-function generateReport() {
+async function generateReport() {
   const data = Object.fromEntries(new FormData(form).entries());
   const metrics = getMetrics(data);
   const lifecycle = judgeLifecycle(data, metrics);
@@ -152,6 +152,76 @@ function generateReport() {
   ].join("\n");
 
   switchPage("diagnosis");
+
+  const submitButton = document.querySelector(".primary-command");
+  setButtonBusy(submitButton, true, "AI 深度诊断中...");
+  try {
+    const aiResult = await requestOpxDiagnosis(data, metrics);
+    renderDiagnosis({ data, metrics, lifecycle, bottlenecks, budgetAction, creativeAudit, spyAudit, platformNotes, finalCall, aiResult });
+    renderBrief({ data, brief, aiResult });
+    lastReportText = buildAiReportText(data, metrics, aiResult);
+  } catch (error) {
+    renderApiFallback(error);
+  } finally {
+    setButtonBusy(submitButton, false, "生成诊断");
+  }
+}
+
+async function requestOpxDiagnosis(data, metrics) {
+  const response = await fetch("/api/opx-diagnose", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model: "gpt-4.1-mini",
+      formData: {
+        ...data,
+        calculatedMetrics: {
+          ctr: formatPercent(metrics.ctr),
+          cvr: formatPercent(metrics.cvr),
+          cpc: formatMoney(metrics.cpc),
+          cpa: formatMoney(metrics.cpa),
+          roas: formatNumber(metrics.roas),
+          cpm: formatMoney(metrics.cpm),
+          breakEvenCpa: formatMoney(metrics.breakEvenCpa),
+          ctrDrop: formatPercent(Math.max(metrics.ctrDrop, 0))
+        }
+      }
+    })
+  });
+  const payload = await response.json();
+  if (!response.ok) {
+    throw new Error(payload.error || "AI 诊断失败");
+  }
+  return payload.result;
+}
+
+function buildAiReportText(data, metrics, aiResult) {
+  return [
+    `OPX AI运营诊断｜${data.productName || "未命名产品"}`,
+    `平台：${data.platform || "-"}｜市场：${data.market || "-"}｜阶段：${data.stage || "-"}`,
+    `核心数据：CTR ${formatPercent(metrics.ctr)}｜CVR ${formatPercent(metrics.cvr)}｜CPA ${formatMoney(metrics.cpa)}｜ROAS ${formatNumber(metrics.roas)}`,
+    `总判断：${aiResult.executiveSummary}`,
+    `账户状态：${aiResult.accountStatus}`,
+    `主要问题：${aiResult.mainProblem}`,
+    `预算动作：${aiResult.budgetDecision}`,
+    `素材动作：${aiResult.creativeDecision}`,
+    `落地页动作：${aiResult.landingDecision}`,
+    `竞品情报：${aiResult.competitorInsight}`,
+    `下一步：${aiResult.nextActions.join("；")}`,
+    `素材Brief：${aiResult.creativeBriefs.join("；")}`,
+    `风险：${aiResult.riskWarnings.join("；")}`
+  ].join("\n");
+}
+
+function renderApiFallback(error) {
+  const notice = document.createElement("article");
+  notice.className = "diagnosis-block danger full";
+  notice.innerHTML = `
+    <span>AI API 状态</span>
+    <strong>已使用本地规则诊断，AI 深度诊断未完成</strong>
+    <ul><li>${error.message}</li><li>如果线上使用，请确认 Render 环境变量里已经配置 OPENAI_API_KEY。</li></ul>
+  `;
+  diagnosis.querySelector(".diagnosis-grid")?.prepend(notice);
 }
 
 function updateHomeTicker(metrics, bottlenecks = []) {
@@ -560,7 +630,13 @@ function renderScoreboard(metrics) {
 }
 
 function renderDiagnosis(report) {
-  const { data, metrics, lifecycle, bottlenecks, budgetAction, creativeAudit, spyAudit, platformNotes, finalCall } = report;
+  const { data, metrics, lifecycle, bottlenecks, budgetAction, creativeAudit, spyAudit, platformNotes, finalCall, aiResult } = report;
+  const aiBlocks = aiResult ? `
+      ${block("AI 总判断", aiResult.executiveSummary, [aiResult.accountStatus, aiResult.mainProblem], "good full")}
+      ${block("AI 预算指令", aiResult.budgetDecision, aiResult.nextActions, "large")}
+      ${block("AI 素材指令", aiResult.creativeDecision, aiResult.creativeBriefs, "large")}
+      ${block("AI 落地页 / 竞品", aiResult.landingDecision, [aiResult.competitorInsight, ...aiResult.riskWarnings], "large")}
+    ` : "";
 
   diagnosis.className = `diagnosis-panel ${budgetAction.level}`;
   diagnosis.innerHTML = `
@@ -569,6 +645,7 @@ function renderDiagnosis(report) {
       <p>${data.platform || "-"} / ${data.market || "-"} / ${data.stage || "-"}</p>
     </div>
     <div class="diagnosis-grid">
+      ${aiBlocks}
       ${block("生命周期", lifecycle.title, [lifecycle.detail], lifecycle.level)}
       ${block("预算动作", budgetAction.title, budgetAction.steps, budgetAction.level)}
       ${block("问题定位", "当前主要卡点", bottlenecks.map((item) => `${item.title}：${item.detail}`), "watch large")}
@@ -581,7 +658,13 @@ function renderDiagnosis(report) {
 }
 
 function renderBrief(report) {
-  const { data, brief } = report;
+  const { data, brief, aiResult } = report;
+  const aiBriefs = aiResult ? aiResult.creativeBriefs.map((item, index) => ({
+    title: `AI Brief ${index + 1}`,
+    detail: item
+  })) : [];
+  const mergedBrief = [...aiBriefs, ...brief].slice(0, 8);
+
   briefOutput.className = "diagnosis-panel good";
   briefOutput.innerHTML = `
     <div class="section-title compact">
@@ -589,7 +672,7 @@ function renderBrief(report) {
       <p>${data.category || "当前类目"} / ${data.market || "目标市场"} / ${data.objective || "投放目标"}</p>
     </div>
     <div class="brief-stack">
-      ${brief.map((item, index) => `
+      ${mergedBrief.map((item, index) => `
         <article class="brief-item">
           <span>0${index + 1}</span>
           <div>
@@ -600,6 +683,12 @@ function renderBrief(report) {
       `).join("")}
     </div>
   `;
+}
+
+function setButtonBusy(button, busy, label) {
+  if (!button) return;
+  button.disabled = busy;
+  button.textContent = label;
 }
 
 function block(label, title, items, tone = "") {
