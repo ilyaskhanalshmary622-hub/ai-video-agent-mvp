@@ -1,243 +1,123 @@
-const revealItems = document.querySelectorAll(".reveal");
-const spotlight = document.querySelector(".spotlight");
-const progressBar = document.querySelector(".progress-rail-bar");
-const interactiveCards = document.querySelectorAll(".interactive-card");
-const magneticItems = document.querySelectorAll(".magnetic, .action-btn, .ghost-link");
-const parallaxItems = document.querySelectorAll("[data-depth]");
-const projectTriggers = document.querySelectorAll(".project-trigger");
-const projectModal = document.querySelector(".project-modal");
-const modalType = document.querySelector(".modal-type");
-const modalTitle = document.querySelector(".modal-title");
-const modalSummary = document.querySelector(".modal-summary");
-const modalPoints = document.querySelector(".modal-points");
-const modalRole = document.querySelector(".modal-role");
-const modalValue = document.querySelector(".modal-value");
-const closeModalTargets = document.querySelectorAll("[data-close-modal]");
-const mediaCards = document.querySelectorAll(".media-card");
-const featuredVideo = document.querySelector("#featured-video");
-const featuredImage = document.querySelector("#featured-image");
-const mediaKind = document.querySelector("#media-kind");
-const mediaTitle = document.querySelector("#media-title");
-const mediaDescription = document.querySelector("#media-description");
-const mediaTags = document.querySelector("#media-tags");
+const pages = document.querySelectorAll("[data-page]");
+const pageLinks = document.querySelectorAll("[data-page-link]");
+const slides = document.querySelectorAll(".slide");
+const pickerButtons = document.querySelectorAll("[data-slide]");
+const prevButton = document.querySelector(".arrow.prev");
+const nextButton = document.querySelector(".arrow.next");
+const projectCards = document.querySelectorAll(".project-card");
 
-const revealObserver = new IntersectionObserver(
-  (entries) => {
-    entries.forEach((entry) => {
-      if (entry.isIntersecting) {
-        entry.target.classList.add("in-view");
-        revealObserver.unobserve(entry.target);
-      }
+let activeSlide = 0;
+let audioContext;
+
+const playTick = () => {
+  try {
+    audioContext ||= new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gain = audioContext.createGain();
+
+    oscillator.type = "sine";
+    oscillator.frequency.setValueAtTime(520, audioContext.currentTime);
+    oscillator.frequency.exponentialRampToValueAtTime(760, audioContext.currentTime + 0.045);
+    gain.gain.setValueAtTime(0.0001, audioContext.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.035, audioContext.currentTime + 0.01);
+    gain.gain.exponentialRampToValueAtTime(0.0001, audioContext.currentTime + 0.075);
+
+    oscillator.connect(gain);
+    gain.connect(audioContext.destination);
+    oscillator.start();
+    oscillator.stop(audioContext.currentTime + 0.08);
+  } catch {
+    // Sound is optional; some browsers block audio until user interaction.
+  }
+};
+
+const pauseVideos = () => {
+  document.querySelectorAll("video").forEach((video) => video.pause());
+};
+
+const openPage = (pageName) => {
+  pages.forEach((page) => {
+    page.classList.toggle("is-active", page.dataset.page === pageName);
+  });
+
+  pageLinks.forEach((link) => {
+    link.classList.toggle("is-active", link.dataset.pageLink === pageName);
+  });
+
+  if (pageName !== "work") {
+    pauseVideos();
+  }
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+};
+
+const setSlide = (nextIndex) => {
+  if (!slides.length) return;
+
+  activeSlide = (nextIndex + slides.length) % slides.length;
+  pauseVideos();
+
+  slides.forEach((slide, index) => {
+    slide.classList.toggle("is-active", index === activeSlide);
+  });
+
+  pickerButtons.forEach((button) => {
+    button.classList.toggle("is-active", Number(button.dataset.slide) === activeSlide);
+  });
+};
+
+pageLinks.forEach((link) => {
+  link.addEventListener("click", (event) => {
+    const pageName = link.dataset.pageLink;
+    if (!pageName) return;
+
+    event.preventDefault();
+    playTick();
+    history.replaceState(null, "", `#${pageName}`);
+    openPage(pageName);
+  });
+});
+
+pickerButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    playTick();
+    setSlide(Number(button.dataset.slide || 0));
+  });
+});
+
+prevButton?.addEventListener("click", () => {
+  playTick();
+  setSlide(activeSlide - 1);
+});
+
+nextButton?.addEventListener("click", () => {
+  playTick();
+  setSlide(activeSlide + 1);
+});
+
+projectCards.forEach((card) => {
+  const trigger = card.querySelector(".project-trigger");
+
+  trigger?.addEventListener("click", () => {
+    playTick();
+    projectCards.forEach((item) => {
+      item.classList.toggle("is-open", item === card ? !item.classList.contains("is-open") : false);
     });
-  },
-  { threshold: 0.12 }
-);
-
-revealItems.forEach((item) => revealObserver.observe(item));
-
-if (spotlight) {
-  let currentX = window.innerWidth / 2;
-  let currentY = window.innerHeight / 2;
-  let targetX = currentX;
-  let targetY = currentY;
-
-  const animateSpotlight = () => {
-    currentX += (targetX - currentX) * 0.12;
-    currentY += (targetY - currentY) * 0.12;
-    spotlight.style.transform = `translate3d(${currentX}px, ${currentY}px, 0) translate(-50%, -50%)`;
-    requestAnimationFrame(animateSpotlight);
-  };
-
-  window.addEventListener("pointermove", (event) => {
-    targetX = event.clientX;
-    targetY = event.clientY;
   });
-
-  animateSpotlight();
-}
-
-const updateProgress = () => {
-  if (!progressBar) {
-    return;
-  }
-
-  const scrollable = document.documentElement.scrollHeight - window.innerHeight;
-  const progress = scrollable > 0 ? (window.scrollY / scrollable) * 100 : 0;
-  progressBar.style.width = `${Math.min(progress, 100)}%`;
-};
-
-window.addEventListener("scroll", updateProgress, { passive: true });
-updateProgress();
-
-interactiveCards.forEach((card) => {
-  const resetCard = () => {
-    card.style.transform = "";
-  };
-
-  card.addEventListener("pointermove", (event) => {
-    const rect = card.getBoundingClientRect();
-    const offsetX = event.clientX - rect.left;
-    const offsetY = event.clientY - rect.top;
-    const rotateY = ((offsetX / rect.width) - 0.5) * 9;
-    const rotateX = (0.5 - offsetY / rect.height) * 9;
-    card.style.transform = `perspective(1400px) rotateX(${rotateX.toFixed(2)}deg) rotateY(${rotateY.toFixed(2)}deg) translateY(-4px)`;
-  });
-
-  card.addEventListener("pointerleave", resetCard);
-  card.addEventListener("pointercancel", resetCard);
-});
-
-magneticItems.forEach((item) => {
-  const resetMagnet = () => {
-    item.style.transform = "";
-  };
-
-  item.addEventListener("pointermove", (event) => {
-    const rect = item.getBoundingClientRect();
-    const moveX = (event.clientX - rect.left - rect.width / 2) * 0.12;
-    const moveY = (event.clientY - rect.top - rect.height / 2) * 0.12;
-    item.style.transform = `translate(${moveX.toFixed(1)}px, ${moveY.toFixed(1)}px)`;
-  });
-
-  item.addEventListener("pointerleave", resetMagnet);
-  item.addEventListener("pointercancel", resetMagnet);
-});
-
-window.addEventListener("pointermove", (event) => {
-  const centerX = window.innerWidth / 2;
-  const centerY = window.innerHeight / 2;
-  const offsetX = (event.clientX - centerX) / centerX;
-  const offsetY = (event.clientY - centerY) / centerY;
-
-  parallaxItems.forEach((item) => {
-    const depth = Number(item.dataset.depth || 0);
-    const moveX = offsetX * depth * 80;
-    const moveY = offsetY * depth * 80;
-    item.style.transform = `translate3d(${moveX}px, ${moveY}px, 0)`;
-  });
-});
-
-const openProjectModal = (card) => {
-  if (!projectModal) {
-    return;
-  }
-
-  modalType.textContent = card.dataset.type || "";
-  modalTitle.textContent = card.dataset.title || "";
-  modalSummary.textContent = card.dataset.summary || "";
-  modalRole.textContent = card.dataset.role || "";
-  modalValue.textContent = card.dataset.value || "";
-
-  modalPoints.innerHTML = "";
-  (card.dataset.points || "")
-    .split("|")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .forEach((point) => {
-      const li = document.createElement("li");
-      li.textContent = point;
-      modalPoints.appendChild(li);
-    });
-
-  projectModal.classList.add("open");
-  projectModal.setAttribute("aria-hidden", "false");
-  document.body.style.overflow = "hidden";
-};
-
-const closeProjectModal = () => {
-  if (!projectModal) {
-    return;
-  }
-
-  projectModal.classList.remove("open");
-  projectModal.setAttribute("aria-hidden", "true");
-  document.body.style.overflow = "";
-};
-
-projectTriggers.forEach((card) => {
-  card.addEventListener("click", () => openProjectModal(card));
-});
-
-closeModalTargets.forEach((item) => {
-  item.addEventListener("click", closeProjectModal);
 });
 
 window.addEventListener("keydown", (event) => {
-  if (event.key === "Escape") {
-    closeProjectModal();
+  if (!document.querySelector('[data-page="work"].is-active')) return;
+
+  if (event.key === "ArrowLeft") {
+    setSlide(activeSlide - 1);
+  }
+
+  if (event.key === "ArrowRight") {
+    setSlide(activeSlide + 1);
   }
 });
 
-const setMediaTags = (tagsText) => {
-  if (!mediaTags) {
-    return;
-  }
-
-  mediaTags.innerHTML = "";
-  tagsText
-    .split("|")
-    .map((item) => item.trim())
-    .filter(Boolean)
-    .forEach((tag) => {
-      const span = document.createElement("span");
-      span.textContent = tag;
-      mediaTags.appendChild(span);
-    });
-};
-
-const activateVideo = (card) => {
-  if (!featuredVideo || !featuredImage) {
-    return;
-  }
-
-  const source = featuredVideo.querySelector("source");
-  const mediaSrc = card.dataset.mediaSrc || "";
-  const poster = card.dataset.mediaPoster || "";
-
-  if (source) {
-    source.src = mediaSrc;
-  }
-
-  featuredVideo.poster = poster;
-  featuredVideo.load();
-  featuredVideo.classList.add("is-active");
-  featuredImage.classList.remove("is-active");
-  mediaKind.textContent = "VIDEO";
-};
-
-const activateImage = (card) => {
-  if (!featuredVideo || !featuredImage) {
-    return;
-  }
-
-  featuredVideo.pause();
-  featuredVideo.classList.remove("is-active");
-  featuredImage.src = card.dataset.mediaSrc || "";
-  featuredImage.alt = card.dataset.mediaTitle || "作品预览图";
-  featuredImage.classList.add("is-active");
-  mediaKind.textContent = "BOARD";
-};
-
-mediaCards.forEach((card) => {
-  card.addEventListener("click", () => {
-    mediaCards.forEach((node) => node.classList.remove("is-active"));
-    card.classList.add("is-active");
-
-    const mediaType = card.dataset.mediaType;
-    if (mediaType === "video") {
-      activateVideo(card);
-    } else {
-      activateImage(card);
-    }
-
-    if (mediaTitle) {
-      mediaTitle.textContent = card.dataset.mediaTitle || "";
-    }
-
-    if (mediaDescription) {
-      mediaDescription.textContent = card.dataset.mediaDescription || "";
-    }
-
-    setMediaTags(card.dataset.mediaTags || "");
-  });
-});
+const initialPage = location.hash.replace("#", "") || "resume";
+openPage(["resume", "work", "ai-projects"].includes(initialPage) ? initialPage : "resume");
+setSlide(0);
