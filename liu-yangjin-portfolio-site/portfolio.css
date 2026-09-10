@@ -739,7 +739,17 @@ dd {
   }
 
   .showcase-main {
-    min-height: 760px;
+    min-height: 0;
+  }
+
+  .slide {
+    position: static;
+    display: none;
+    inset: auto;
+  }
+
+  .slide.is-active {
+    display: grid;
   }
 
   .work-picker {
@@ -794,16 +804,54 @@ dd {
   }
 
   .skill-grid,
-  .work-picker {
+  .skill-grid {
     grid-template-columns: 1fr;
   }
 
   .showcase-main {
-    min-height: 680px;
+    min-height: 0;
+  }
+
+  .showcase {
+    padding: 14px;
+    border-radius: 24px;
+  }
+
+  .slide {
+    gap: 18px;
+  }
+
+  .slide-copy h3 {
+    font-size: 30px;
+    letter-spacing: -0.05em;
+  }
+
+  .media-frame {
+    border-radius: 22px;
+  }
+
+  .media-frame.is-vertical video {
+    width: 100%;
+    max-height: 62vh;
+  }
+
+  .work-picker {
+    display: flex;
+    gap: 12px;
+    margin-left: -2px;
+    margin-right: -2px;
+    padding: 2px 2px 12px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+  }
+
+  .work-picker button {
+    flex: 0 0 164px;
+    scroll-snap-align: start;
   }
 
   .arrow {
-    top: 31%;
+    top: 210px;
     width: 42px;
     height: 42px;
   }
