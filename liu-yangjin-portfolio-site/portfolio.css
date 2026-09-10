@@ -492,6 +492,20 @@ dd {
   letter-spacing: -0.05em;
 }
 
+.highlight-block {
+  background:
+    linear-gradient(135deg, rgba(0, 113, 227, 0.1), rgba(255, 255, 255, 0.86)),
+    var(--card);
+}
+
+.highlight-block a {
+  display: inline-flex;
+  margin-top: 10px;
+  color: var(--blue);
+  font-weight: 800;
+  text-decoration: none;
+}
+
 .job {
   padding: 18px 0;
   border-top: 1px solid var(--line);
@@ -575,6 +589,20 @@ dd {
   object-fit: cover;
 }
 
+.media-frame.is-vertical {
+  display: grid;
+  place-items: center;
+  background: #050505;
+}
+
+.media-frame.is-vertical video {
+  width: auto;
+  max-width: 100%;
+  max-height: 620px;
+  aspect-ratio: 9 / 16;
+  object-fit: contain;
+}
+
 .grid-frame {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -635,7 +663,7 @@ dd {
 
 .work-picker {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 14px;
   margin-top: 18px;
 }
