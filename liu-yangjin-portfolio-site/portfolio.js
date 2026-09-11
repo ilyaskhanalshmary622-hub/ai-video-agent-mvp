@@ -118,6 +118,6 @@ window.addEventListener("keydown", (event) => {
   }
 });
 
-const initialPage = location.hash.replace("#", "") || "resume";
-openPage(["resume", "work", "ai-projects"].includes(initialPage) ? initialPage : "resume");
+const initialPage = location.hash.replace("#", "") || "home";
+openPage(["home", "resume", "work", "ai-projects"].includes(initialPage) ? initialPage : "home");
 setSlide(0);

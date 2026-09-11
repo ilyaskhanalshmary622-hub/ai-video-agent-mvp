@@ -1,14 +1,14 @@
 :root {
-  --bg: #f5f5f7;
-  --card: rgba(255, 255, 255, 0.78);
+  --bg: #f7f7f4;
+  --card: rgba(255, 255, 255, 0.82);
   --card-solid: #ffffff;
   --text: #1d1d1f;
   --muted: #6e6e73;
   --soft: #86868b;
-  --line: rgba(0, 0, 0, 0.08);
-  --blue: #0071e3;
-  --blue-dark: #0057b8;
-  --shadow: 0 24px 70px rgba(0, 0, 0, 0.09);
+  --line: rgba(0, 0, 0, 0.11);
+  --blue: #1f1f1f;
+  --blue-dark: #000000;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.06);
   --radius-lg: 34px;
   --radius-md: 22px;
 }
@@ -27,8 +27,8 @@ body {
   color: var(--text);
   font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
   background:
-    radial-gradient(circle at 50% 0%, rgba(0, 113, 227, 0.11), transparent 34rem),
-    linear-gradient(180deg, #fbfbfd 0%, var(--bg) 48%, #ffffff 100%);
+    radial-gradient(circle at 70% 0%, rgba(0, 0, 0, 0.035), transparent 34rem),
+    linear-gradient(180deg, #fbfbf9 0%, var(--bg) 48%, #ffffff 100%);
   overflow-x: hidden;
 }
 
@@ -47,7 +47,8 @@ a {
   gap: 24px;
   width: min(1180px, calc(100% - 40px));
   margin: 0 auto;
-  padding: 18px 0;
+  padding: 26px 0 22px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
   backdrop-filter: blur(22px);
 }
 
@@ -61,31 +62,45 @@ a {
   text-decoration: none;
 }
 
-.brand-dot {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, #0071e3, #8fd3ff);
-  box-shadow: 0 0 18px rgba(0, 113, 227, 0.36);
+.brand-word {
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 38px;
+  font-weight: 900;
+  letter-spacing: -0.08em;
+}
+
+.brand-stack {
+  display: grid;
+  gap: 2px;
+}
+
+.brand-stack b {
+  font-size: 13px;
+}
+
+.brand-stack small {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
 }
 
 .nav {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px;
-  border: 1px solid var(--line);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.72);
-  box-shadow: 0 12px 34px rgba(0, 0, 0, 0.05);
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .nav button,
 .nav a {
   min-height: 34px;
   padding: 0 15px;
-  border: 0;
-  border-radius: 999px;
+  border: 1px solid transparent;
+  border-radius: 0;
   color: var(--muted);
   background: transparent;
   text-decoration: none;
@@ -97,8 +112,9 @@ a {
 .nav a:hover,
 .nav .is-active {
   color: var(--text);
-  background: #fff;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.64);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: none;
 }
 
 main {
@@ -115,7 +131,132 @@ main {
 
 .page.is-active {
   display: block;
-  animation: pageIn 0.45s ease forwards;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.home-landing {
+  min-height: calc(100vh - 136px);
+  display: grid;
+  grid-template-columns: minmax(0, 0.95fr) 1px minmax(360px, 0.72fr);
+  gap: 64px;
+  align-items: center;
+  padding: 86px 0 70px;
+}
+
+.home-left {
+  padding-top: 66px;
+}
+
+.home-index {
+  margin: 0;
+  color: #59616a;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+}
+
+.home-left h1 {
+  margin: 38px 0 0;
+  font-size: clamp(72px, 8vw, 124px);
+  line-height: 0.92;
+  font-weight: 500;
+  letter-spacing: -0.1em;
+}
+
+.home-en {
+  margin-top: 8px;
+  color: #9d9b96;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(44px, 5.4vw, 82px);
+  font-style: italic;
+  line-height: 1;
+}
+
+.home-role {
+  margin: 52px 0 0;
+  font-weight: 700;
+}
+
+.home-slogan {
+  margin: 48px 0 0;
+  font-family: Georgia, "Times New Roman", "Microsoft YaHei", serif;
+  font-size: clamp(30px, 3vw, 44px);
+  line-height: 1.7;
+  letter-spacing: 0.14em;
+}
+
+.home-btn {
+  display: inline-flex;
+  gap: 34px;
+  align-items: center;
+  justify-content: center;
+  min-width: 210px;
+  min-height: 62px;
+  margin-top: 50px;
+  border: 0;
+  color: #fff;
+  background: #202020;
+  cursor: pointer;
+  transition: transform 0.22s ease, background 0.22s ease;
+}
+
+.home-btn:hover {
+  transform: translateY(-3px);
+  background: #000;
+}
+
+.home-rule {
+  width: 1px;
+  height: min(70vh, 760px);
+  background: rgba(0, 0, 0, 0.12);
+}
+
+.home-right {
+  max-width: 520px;
+}
+
+.home-about {
+  margin: 0 0 34px;
+  color: #4c5561;
+  font-size: 14px;
+}
+
+.home-right h2 {
+  margin: 0;
+  font-family: Georgia, "Times New Roman", "Microsoft YaHei", serif;
+  font-size: clamp(30px, 3vw, 44px);
+  font-weight: 400;
+  line-height: 1.62;
+  letter-spacing: 0.02em;
+}
+
+.home-right > p:not(.home-about) {
+  margin: 34px 0 0;
+  color: var(--muted);
+  font-size: 17px;
+  line-height: 2;
+}
+
+.home-capabilities {
+  margin-top: 44px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.home-capabilities article {
+  padding: 22px 0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.home-capabilities b {
+  display: block;
+  margin-bottom: 9px;
+}
+
+.home-capabilities span {
+  color: var(--muted);
+  font-size: 15px;
 }
 
 .hero {
@@ -189,17 +330,17 @@ main {
 .primary-btn {
   color: #fff;
   background: var(--blue);
-  box-shadow: 0 14px 30px rgba(0, 113, 227, 0.22);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.12);
 }
 
 .secondary-btn {
   color: var(--blue);
-  background: rgba(0, 113, 227, 0.08);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .secondary-link {
   color: var(--blue);
-  background: rgba(0, 113, 227, 0.08);
+  background: rgba(0, 0, 0, 0.06);
 }
 
 .primary-btn:hover,
@@ -308,8 +449,8 @@ main {
 .project-card:hover,
 .project-card.is-open {
   transform: translateY(-4px);
-  border-color: rgba(0, 113, 227, 0.26);
-  box-shadow: 0 28px 80px rgba(0, 113, 227, 0.12);
+  border-color: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.1);
 }
 
 .project-trigger {
@@ -332,7 +473,7 @@ main {
   height: 52px;
   border-radius: 18px;
   color: var(--blue);
-  background: rgba(0, 113, 227, 0.08);
+  background: rgba(0, 0, 0, 0.06);
   font-weight: 900;
 }
 
@@ -386,7 +527,7 @@ main {
   padding: 12px 14px;
   border-radius: 16px;
   color: var(--blue-dark);
-  background: rgba(0, 113, 227, 0.08);
+  background: rgba(0, 0, 0, 0.06);
   font-weight: 800;
   text-align: center;
 }
@@ -408,7 +549,7 @@ main {
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
   background:
-    radial-gradient(circle at 88% 18%, rgba(0, 113, 227, 0.16), transparent 20rem),
+    radial-gradient(circle at 88% 18%, rgba(0, 0, 0, 0.08), transparent 20rem),
     rgba(255, 255, 255, 0.82);
   box-shadow: var(--shadow);
   backdrop-filter: blur(22px);
@@ -423,7 +564,8 @@ main {
 
 .resume-hero h2 {
   margin: 20px 0 0;
-  font-size: clamp(24px, 3.2vw, 48px);
+  max-width: 780px;
+  font-size: clamp(24px, 2.8vw, 42px);
   line-height: 1.12;
   letter-spacing: -0.06em;
 }
@@ -494,7 +636,7 @@ dd {
 
 .highlight-block {
   background:
-    linear-gradient(135deg, rgba(0, 113, 227, 0.1), rgba(255, 255, 255, 0.86)),
+    linear-gradient(135deg, rgba(0, 0, 0, 0.06), rgba(255, 255, 255, 0.86)),
     var(--card);
 }
 
@@ -636,7 +778,7 @@ dd {
   padding: 9px 13px;
   border-radius: 999px;
   color: var(--blue);
-  background: rgba(0, 113, 227, 0.08);
+  background: rgba(0, 0, 0, 0.06);
   font-weight: 700;
 }
 
@@ -680,7 +822,7 @@ dd {
 
 .work-picker .is-active {
   color: var(--text);
-  outline: 2px solid rgba(0, 113, 227, 0.28);
+  outline: 2px solid rgba(0, 0, 0, 0.18);
 }
 
 .work-picker img {
@@ -724,6 +866,26 @@ dd {
 }
 
 @media (max-width: 900px) {
+  .home-landing {
+    min-height: auto;
+    grid-template-columns: 1fr;
+    gap: 34px;
+    padding: 46px 0 72px;
+  }
+
+  .home-left {
+    padding-top: 0;
+  }
+
+  .home-rule {
+    width: 100%;
+    height: 1px;
+  }
+
+  .home-right {
+    max-width: none;
+  }
+
   .home-cards,
   .resume-layout,
   .resume-hero,
@@ -776,6 +938,40 @@ dd {
   main {
     width: min(100% - 24px, 1180px);
     padding-top: 28px;
+  }
+
+  .home-landing {
+    padding-top: 34px;
+  }
+
+  .home-index {
+    font-size: 11px;
+  }
+
+  .home-left h1 {
+    margin-top: 28px;
+    font-size: 62px;
+  }
+
+  .home-en {
+    font-size: 42px;
+  }
+
+  .home-role {
+    margin-top: 34px;
+  }
+
+  .home-slogan {
+    margin-top: 34px;
+    font-size: 28px;
+  }
+
+  .home-btn {
+    min-width: 100%;
+  }
+
+  .home-right h2 {
+    font-size: 29px;
   }
 
   .hero {
