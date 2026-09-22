@@ -1,4 +1,5 @@
 import base64
+import io
 import json
 import math
 import os
@@ -7,6 +8,8 @@ import shutil
 import subprocess
 import tempfile
 from datetime import datetime
+from email.parser import BytesParser
+from email.policy import default as email_policy
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib import error, request
@@ -265,6 +268,139 @@ def call_openai(api_key, model, instructions, schema_name, schema, prompt_text, 
     raise RuntimeError("模型没有返回结构化结果。")
 
 
+def call_image_generation_api(api_key, prompt, mode, ratio, quality, edit_mode, edit_brief, images):
+    if not prompt.strip():
+        raise ValueError("缺少提示词")
+
+    model = os.environ.get("IMAGE_MODEL", "").strip() or "gpt-image-2.5"
+    aspect_ratio = image_size_from_ratio(ratio, quality)
+    full_prompt = build_image_prompt(prompt, mode, ratio, quality, edit_mode, edit_brief, images)
+
+    payload = {
+        "model": model,
+        "prompt": full_prompt,
+        "images": [f"data:{image['mimeType']};base64,{image['data']}" for image in images],
+        "aspectRatio": aspect_ratio,
+        "quality": image_quality_for_grsai(quality, model),
+        "replyType": "json",
+    }
+    req = request.Request(
+        image_api_url(),
+        data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+        headers={
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {api_key}",
+        },
+        method="POST",
+    )
+    try:
+        with request.urlopen(req, timeout=180) as resp:
+            response_json = json.loads(resp.read().decode("utf-8"))
+    except error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"生图服务错误：{exc.code} {detail}") from exc
+    except error.URLError as exc:
+        raise RuntimeError(f"生图服务网络错误：{exc.reason}") from exc
+
+    return normalize_image_response(response_json)
+
+
+def normalize_image_response(response_json):
+    results = response_json.get("results") if isinstance(response_json, dict) else None
+    if isinstance(results, list) and results:
+        first = results[0]
+        if first.get("url"):
+            return {"imageUrl": first["url"], "taskId": response_json.get("id"), "status": response_json.get("status")}
+        if first.get("b64_json"):
+            return {"imageUrl": f"data:image/png;base64,{first['b64_json']}", "taskId": response_json.get("id"), "status": response_json.get("status")}
+
+    data = response_json.get("data") if isinstance(response_json, dict) else None
+    if isinstance(data, list) and data:
+        first = data[0]
+        if first.get("b64_json"):
+            return {"imageUrl": f"data:image/png;base64,{first['b64_json']}"}
+        if first.get("url"):
+            return {"imageUrl": first["url"]}
+    for key in ("imageUrl", "url", "image"):
+        value = response_json.get(key) if isinstance(response_json, dict) else None
+        if value:
+            return {"imageUrl": value}
+    raise RuntimeError("生图服务没有返回图片")
+
+
+def build_image_prompt(prompt, mode, ratio, quality, edit_mode, edit_brief, images):
+    lines = [
+        prompt.strip(),
+        "",
+        f"画面比例：{ratio}",
+        f"清晰度：{quality.upper()}",
+        f"生成模式：{'图生图' if images or mode == 'image-to-image' else '文生图'}",
+        f"编辑方式：{edit_mode}",
+    ]
+    if edit_brief.strip():
+        lines.extend(["替换/编辑要求：", edit_brief.strip()])
+    if images:
+        lines.append(f"参考图数量：{len(images)}。请保持参考图中的产品结构、Logo 朝向、材质和关键识别点。")
+    lines.append("要求：真实自然，高级商业摄影质感，主体清晰，细节干净，不要水印，不要错字，不要畸形。")
+    return "\n".join(lines)
+
+
+def image_size_from_ratio(ratio, quality):
+    if quality == "1k":
+        sizes = {
+            "1:1": "1024x1024",
+            "16:9": "1280x720",
+            "9:16": "720x1280",
+            "4:5": "896x1120",
+            "3:4": "864x1152",
+        }
+        return sizes.get(ratio, "1024x1024")
+    if quality == "4k":
+        sizes = {
+            "1:1": "2880x2880",
+            "16:9": "3840x2160",
+            "9:16": "2160x3840",
+            "4:5": "2560x3200",
+            "3:4": "2448x3264",
+        }
+        return sizes.get(ratio, "2880x2880")
+    if quality == "8k":
+        sizes = {
+            "1:1": "4096x4096",
+            "16:9": "7680x4320",
+            "9:16": "4320x7680",
+            "4:5": "5120x6400",
+            "3:4": "4896x6528",
+        }
+        return sizes.get(ratio, "4096x4096")
+    if ratio == "16:9":
+        return "2048x1152"
+    if ratio == "9:16":
+        return "1152x2048"
+    if ratio == "4:5":
+        return "1792x2240"
+    if ratio == "3:4":
+        return "1536x2048"
+    return "2048x2048"
+
+
+def image_quality_for_grsai(quality, model):
+    if model == "gpt-image-2":
+        return "auto"
+    if quality == "1k":
+        return "low"
+    if quality == "2k":
+        return "medium"
+    if quality == "4k":
+        return "high"
+    return "xhigh"
+
+
+def image_api_url():
+    base_url = os.environ.get("IMAGE_API_BASE_URL", "").strip() or "https://grsaiapi.com"
+    return base_url.rstrip("/") + "/v1/api/generate"
+
+
 def extraction_prompt():
     return (
         "你是短视频爆款拆解助手“凯旋爆款拆解”。"
@@ -354,6 +490,9 @@ class AppHandler(SimpleHTTPRequestHandler):
             return
         if self.path == "/api/save-project":
             self.handle_save_project()
+            return
+        if self.path == "/api/generate-image":
+            self.handle_generate_image()
             return
         self.send_json(404, {"error": "接口不存在"})
 
@@ -551,10 +690,83 @@ class AppHandler(SimpleHTTPRequestHandler):
             },
         )
 
+    def handle_generate_image(self):
+        if not self.is_local_request():
+            password = os.environ.get("MUSEFRAME_ACCESS_PASSWORD", "").strip()
+            request_password = self.headers.get("X-MuseFrame-Password", "").strip()
+            if not password or request_password != password:
+                self.send_json(403, {"error": "未授权访问"})
+                return
+
+        api_key = (
+            os.environ.get("IMAGE_API_KEY", "").strip()
+            or os.environ.get("OPENAI_API_KEY", "").strip()
+        )
+        if not api_key:
+            self.send_json(500, {"error": "本地还没有配置生图 API Key"})
+            return
+
+        try:
+            fields, files = self.read_multipart()
+            result = call_image_generation_api(
+                api_key=api_key,
+                prompt=fields.get("prompt", ""),
+                mode=fields.get("mode", "text-to-image"),
+                ratio=fields.get("ratio", "1:1"),
+                quality=fields.get("quality", "2k"),
+                edit_mode=fields.get("editMode", "generate"),
+                edit_brief=fields.get("editBrief", ""),
+                images=files,
+            )
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(500, {"error": str(exc)})
+            return
+
+        self.send_json(200, result)
+
     def read_json(self):
         content_length = int(self.headers.get("Content-Length", "0"))
         raw = self.rfile.read(content_length)
         return json.loads(raw.decode("utf-8"))
+
+    def read_multipart(self):
+        content_type = self.headers.get("Content-Type", "")
+        if "multipart/form-data" not in content_type:
+            raise ValueError("请求格式错误：需要 multipart/form-data")
+
+        content_length = int(self.headers.get("Content-Length", "0"))
+        raw = self.rfile.read(content_length)
+        header_blob = (
+            f"Content-Type: {content_type}\r\n"
+            f"Content-Length: {content_length}\r\n\r\n"
+        ).encode("utf-8")
+        message = BytesParser(policy=email_policy).parsebytes(header_blob + raw)
+
+        fields = {}
+        files = []
+        for part in message.iter_parts():
+            disposition = part.get("Content-Disposition", "")
+            if "form-data" not in disposition:
+                continue
+            name = part.get_param("name", header="content-disposition")
+            filename = part.get_filename()
+            payload = part.get_payload(decode=True) or b""
+            if filename:
+                files.append(
+                    {
+                        "fieldName": name or "image",
+                        "name": filename,
+                        "mimeType": part.get_content_type(),
+                        "data": base64.b64encode(payload).decode("utf-8"),
+                    }
+                )
+            elif name:
+                fields[name] = payload.decode("utf-8", errors="replace")
+        return fields, files
+
+    def is_local_request(self):
+        client_host = self.client_address[0] if self.client_address else ""
+        return client_host in {"127.0.0.1", "::1", "localhost"}
 
     def send_json(self, status_code, payload):
         raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")

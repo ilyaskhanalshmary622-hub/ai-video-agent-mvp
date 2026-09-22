@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuseFrame</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <section class="gate" id="gate">
+    <div class="gate-card">
+      <p class="eyebrow">MUSEFRAME ACCESS</p>
+      <h1>MuseFrame</h1>
+      <p>输入访问密码后进入生图工作台。API Key 保存在服务器环境变量里，不会暴露给访问者。</p>
+      <label>
+        <span>访问密码</span>
+        <input id="access-password" type="password" placeholder="请输入密码">
+      </label>
+      <button id="unlock" class="primary" type="button">进入工作台</button>
+      <small id="gate-message"></small>
+    </div>
+  </section>
+
+  <main class="app locked" id="app">
+    <section class="hero">
+      <div>
+        <p class="eyebrow">MUSEFRAME</p>
+        <h1>MuseFrame</h1>
+        <p class="intro">用提示词生成商品视觉，用参考图重绘商业素材。适合做商品主图、场景图、广告素材和视觉方案草图。</p>
+      </div>
+      <div class="status-card">
+        <span>创作模式</span>
+        <strong id="api-status">提示词生成</strong>
+        <small>文本生成 / 参考图重绘</small>
+        <div class="energy-card" aria-label="余额能量">
+          <div class="energy-top">
+            <b>余额能量</b>
+            <em id="energy-value">86%</em>
+          </div>
+          <div class="energy-bar">
+            <i id="energy-fill"></i>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="studio">
+      <div class="composer">
+        <label class="upload-card" id="drop-zone" for="reference-file">
+          <input id="reference-file" type="file" accept="image/*" multiple>
+          <div id="upload-placeholder" class="upload-placeholder">
+            <b>拖入参考图</b>
+            <span>支持多张图片：产品图、Logo、场景图、材质参考都可以放进来。</span>
+          </div>
+          <div id="reference-list" class="reference-list"></div>
+        </label>
+
+        <label class="prompt-box">
+          <span>提示词</span>
+          <textarea id="prompt" placeholder="例如：生成一张高级真实的真空压缩收纳袋商品图，暖米白背景，鼠尾草绿文字，产品正面朝前，质感清晰，1:1，电商主图风格。"></textarea>
+        </label>
+
+        <div class="settings-row">
+          <label>
+            <span>比例</span>
+            <select id="ratio">
+              <option value="1:1">1:1</option>
+              <option value="3:4">3:4</option>
+              <option value="4:5">4:5</option>
+              <option value="9:16">9:16</option>
+              <option value="16:9">16:9</option>
+            </select>
+          </label>
+          <label>
+            <span>清晰度</span>
+            <select id="quality">
+              <option value="1k">1K</option>
+              <option value="2k" selected>2K</option>
+              <option value="4k">4K</option>
+              <option value="8k">8K</option>
+            </select>
+          </label>
+          <label>
+            <span>替换方式</span>
+            <select id="edit-mode">
+              <option value="generate">直接生成</option>
+              <option value="replace-product">替换产品</option>
+              <option value="replace-element">替换元素</option>
+              <option value="replace-background">替换背景</option>
+              <option value="keep-product">保留产品重做场景</option>
+            </select>
+          </label>
+        </div>
+
+        <label class="prompt-box compact">
+          <span>替换要求</span>
+          <textarea id="edit-brief" placeholder="例如：保留场景光影，只把画面里的普通收纳袋替换成我的产品；Logo 对准正前方，产品材质保持真实。"></textarea>
+        </label>
+
+        <div class="actions">
+          <button id="clear" class="secondary" type="button">清空</button>
+          <button id="generate" class="primary" type="button">生成图片</button>
+        </div>
+      </div>
+
+      <div class="result">
+        <div class="result-head">
+          <span>生成结果</span>
+          <b id="mode-label">文生图模式</b>
+        </div>
+        <div class="image-stage" id="image-stage">
+          <div class="empty-state">
+            <strong>还没有生成图片</strong>
+            <span>输入提示词后点击生成。上传参考图时会自动切换为图生图。</span>
+          </div>
+        </div>
+        <p id="message" class="message">准备就绪。</p>
+      </div>
+    </section>
+
+    <section class="history-panel">
+      <div class="history-title">
+        <div>
+          <p class="eyebrow">PROMPT LIBRARY</p>
+          <h2>提示词记录</h2>
+        </div>
+        <button id="clear-history" class="secondary" type="button">清空记录</button>
+      </div>
+      <div id="history-list" class="history-list"></div>
+    </section>
+  </main>
+
+  <script src="./script.js"></script>
+</body>
+</html>
