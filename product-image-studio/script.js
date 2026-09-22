@@ -145,7 +145,7 @@ async function generateImage() {
     consumeEnergy();
     setMessage("生成完成。", "success");
   } catch (error) {
-    showApiPlaceholder(prompt);
+    showApiPlaceholder(prompt, error.message || "生图服务未连接");
     apiStatus.textContent = "生成失败";
     setMessage(`生成失败：${error.message || "生图服务未连接"}`, "error");
   } finally {
@@ -179,12 +179,12 @@ function showGenerating() {
   `;
 }
 
-function showApiPlaceholder(prompt) {
+function showApiPlaceholder(prompt, detail = "请检查访问密码、API Key、模型名称或额度。") {
   imageStage.classList.remove("generating");
   imageStage.innerHTML = `
     <div class="empty-state">
       <strong>暂未生成成功</strong>
-      <span>请检查访问密码、API Key、模型名称或额度。</span>
+      <span id="result-error-detail">${escapeHtml(detail)}</span>
       <span>本次提示词：${escapeHtml(prompt.slice(0, 90))}${prompt.length > 90 ? "..." : ""}</span>
     </div>
   `;
