@@ -1,7 +1,6 @@
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib import error, request
-import cgi
 import json
 import os
 import re
@@ -345,6 +344,8 @@ class RagHandler(SimpleHTTPRequestHandler):
 
     def handle_upload(self):
         try:
+            import cgi
+
             form = cgi.FieldStorage(
                 fp=self.rfile,
                 headers=self.headers,
