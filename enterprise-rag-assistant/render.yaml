@@ -1,0 +1,19 @@
+services:
+  - type: web
+    name: enterprise-rag-assistant
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python rag_server.py
+    envVars:
+      - key: RAG_HOST
+        value: 0.0.0.0
+      - key: RAG_ALLOW_EXTERNAL
+        value: "1"
+      - key: AGNES_MODEL
+        value: agnes-2.5-flash
+      - key: AGNES_API_KEY
+        sync: false
+      - key: RAG_ACCESS_PASSWORD
+        sync: false
+

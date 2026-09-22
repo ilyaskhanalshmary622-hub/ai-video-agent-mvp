@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>企业知识助手</title>
+  <link rel="stylesheet" href="./rag_ui.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" data-page-link="ask" aria-label="企业知识助手首页">
+      <span>R</span>
+      <div>
+        <strong>企业知识助手</strong>
+        <small>RAG Knowledge Assistant</small>
+      </div>
+    </a>
+    <nav class="nav">
+      <button class="nav-link active" type="button" data-page-link="ask">问助手</button>
+      <button class="nav-link" type="button" data-page-link="knowledge">知识库</button>
+      <button class="nav-link" type="button" data-page-link="deploy">部署说明</button>
+    </nav>
+  </header>
+
+  <main class="app">
+    <section class="page active" id="page-ask">
+      <section class="hero">
+        <p>ENTERPRISE AI ASSISTANT</p>
+        <h1>把公司 SOP 变成可提问的 AI 助手。</h1>
+        <span>适合投放诊断、素材改法、落地页优化、客服口径和老板汇报。回答会基于本地知识库，不凭空编。</span>
+      </section>
+
+      <section class="ask-layout">
+        <aside class="glass-card side-card">
+          <div class="status" id="system-status">
+            <b>正在读取知识库...</b>
+            <p>系统会检索本地资料，再调用 Agnes 生成建议。</p>
+          </div>
+          <div class="metric-grid">
+            <div>
+              <strong id="file-count">-</strong>
+              <span>资料文件</span>
+            </div>
+            <div>
+              <strong id="chunk-count">-</strong>
+              <span>知识切片</span>
+            </div>
+          </div>
+          <div class="mini-flow">
+            <span>读取资料</span>
+            <span>匹配依据</span>
+            <span>生成建议</span>
+            <span>展示来源</span>
+          </div>
+        </aside>
+
+        <section class="glass-card ask-card">
+          <div class="form-row">
+            <label>
+              <span>输出模式</span>
+              <select id="role">
+                <option>运营诊断</option>
+                <option>素材改法</option>
+                <option>落地页优化</option>
+                <option>客服回复</option>
+                <option>老板汇报</option>
+              </select>
+            </label>
+            <button class="ghost" type="button" data-demo="CTR高但是CVR低，我应该先改素材还是落地页？">投放诊断</button>
+            <button class="ghost" type="button" data-demo="新素材跑了3天，CTR不错但是评论区质疑很多，下一轮怎么改？">素材迭代</button>
+            <button class="ghost" type="button" data-demo="客户问投影效果和视频一样吗，怎么回复并做成素材？">客服口径</button>
+          </div>
+
+          <label class="query-box">
+            <span>输入问题</span>
+            <textarea id="query" placeholder="例如：CTR高但是CVR低，我应该先改素材还是落地页？"></textarea>
+          </label>
+
+          <div class="memory-row">
+            <label class="memory-toggle">
+              <input id="use-memory" type="checkbox" checked>
+              <span>带上最近 3 轮对话</span>
+            </label>
+            <button id="clear-memory" class="text-button" type="button">清空记忆</button>
+          </div>
+
+          <button id="ask" class="primary" type="button">生成建议</button>
+        </section>
+      </section>
+
+      <section class="result-grid">
+        <article class="glass-card answer-panel">
+          <div class="section-title">
+            <h2>执行建议</h2>
+            <span id="answer-status">等待提问</span>
+          </div>
+          <pre id="answer">这里会显示基于知识库生成的执行建议，尽量短、直接、可操作。</pre>
+        </article>
+        <article class="glass-card evidence-panel">
+          <div class="section-title">
+            <h2>参考资料</h2>
+            <span id="retrieval-status">RAG 依据</span>
+          </div>
+          <div id="sources" class="sources">
+            <p>这里会显示本次检索到的知识库片段。</p>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <section class="page" id="page-knowledge">
+      <section class="page-head">
+        <p>KNOWLEDGE BASE</p>
+        <h1>知识库管理</h1>
+        <span>前台展示版不开放上传。资料由管理员维护，避免别人随便上传、污染知识库或消耗 API。</span>
+      </section>
+
+      <section class="knowledge-layout">
+        <article class="glass-card">
+          <div class="section-title">
+            <h2>当前资料</h2>
+            <span>本地 knowledge 文件夹</span>
+          </div>
+          <div id="knowledge-files" class="knowledge-files">
+            <p>读取中...</p>
+          </div>
+        </article>
+
+        <article class="glass-card">
+          <div class="section-title">
+            <h2>怎么补资料</h2>
+            <span>管理员操作</span>
+          </div>
+          <div class="guide">
+            <p>把 Markdown 文件放进这个文件夹：</p>
+            <code>C:\Users\PC\Documents\视频创作\rag_practice_case\knowledge</code>
+            <p>推荐命名方式：</p>
+            <ul>
+              <li><b>product__产品名.md</b>：产品资料、卖点、禁忌。</li>
+              <li><b>ads__投放规则.md</b>：Facebook、TikTok、AppLovin SOP。</li>
+              <li><b>customer__客服FAQ.md</b>：售后、物流、质疑回复。</li>
+              <li><b>review__复盘案例.md</b>：爆款、失败素材、数据结论。</li>
+            </ul>
+            <p>保存后刷新网页即可读取。更稳可以重启服务。</p>
+          </div>
+        </article>
+      </section>
+    </section>
+
+    <section class="page" id="page-deploy">
+      <section class="page-head">
+        <p>DEPLOYMENT</p>
+        <h1>部署说明</h1>
+        <span>如果给别人试用，建议先加访问密码或只放脱敏资料。Key 放服务端环境变量，不放网页。</span>
+      </section>
+
+      <section class="deploy-grid">
+        <article class="glass-card">
+          <h2>本地版</h2>
+          <p>适合自己学习和演示。资料在电脑本地，模型调用 Agnes。</p>
+          <code>powershell -ExecutionPolicy Bypass -File .\start_rag_assistant.ps1</code>
+        </article>
+        <article class="glass-card">
+          <h2>线上展示版</h2>
+          <p>适合发链接给别人看。必须把 API Key 放到 Render 环境变量里。</p>
+          <code>AGNES_API_KEY / RAG_ALLOW_EXTERNAL / AGNES_MODEL</code>
+        </article>
+        <article class="glass-card">
+          <h2>企业安全版</h2>
+          <p>适合真实公司资料。需要登录权限、资料脱敏、操作日志和上传权限控制。</p>
+          <code>Auth + Audit Log + Private Knowledge Base</code>
+        </article>
+      </section>
+    </section>
+  </main>
+
+  <script src="./rag_ui.js"></script>
+</body>
+</html>
