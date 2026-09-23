@@ -14,6 +14,7 @@ from email.policy import default as email_policy
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
 from urllib import error, request
+from urllib.parse import parse_qs, urlparse
 
 
 ROOT = Path(__file__).resolve().parent
@@ -303,7 +304,44 @@ def call_image_generation_api(api_key, prompt, mode, ratio, quality, edit_mode, 
     except error.URLError as exc:
         raise RuntimeError(f"生图服务网络错误：{exc.reason}") from exc
 
-    return wait_for_image_result(api_key, response_json)
+    status = response_json.get("status") if isinstance(response_json, dict) else None
+    if status == "succeeded":
+        return normalize_image_response(response_json)
+    if status in {"failed", "violation"}:
+        raise RuntimeError(f"生图任务失败：{response_json.get('error') or status}")
+
+    task_id = response_json.get("id") if isinstance(response_json, dict) else None
+    if task_id:
+        return {"taskId": task_id, "status": status or "running"}
+
+    return normalize_image_response(response_json)
+
+
+def query_image_generation_result(api_key, task_id):
+    req = request.Request(
+        image_result_url(task_id),
+        headers={"Authorization": f"Bearer {api_key}"},
+        method="GET",
+    )
+    try:
+        with request.urlopen(req, timeout=45) as resp:
+            response_json = json.loads(resp.read().decode("utf-8"))
+    except error.HTTPError as exc:
+        detail = exc.read().decode("utf-8", errors="replace")
+        raise RuntimeError(f"查询生图结果失败：{exc.code} {detail}") from exc
+    except error.URLError as exc:
+        raise RuntimeError(f"查询生图结果网络错误：{exc.reason}") from exc
+
+    status = response_json.get("status") if isinstance(response_json, dict) else None
+    if status == "succeeded":
+        return normalize_image_response(response_json)
+    if status in {"failed", "violation"}:
+        raise RuntimeError(f"生图任务失败：{response_json.get('error') or status}")
+    return {
+        "taskId": response_json.get("id") or task_id,
+        "status": status or "running",
+        "progress": response_json.get("progress"),
+    }
 
 
 def wait_for_image_result(api_key, response_json):
@@ -542,6 +580,10 @@ class AppHandler(SimpleHTTPRequestHandler):
         if self.path == "/api/config":
             self.send_json(200, {"serverApiReady": bool(os.environ.get("OPENAI_API_KEY", "").strip())})
             return
+        parsed = urlparse(self.path)
+        if parsed.path == "/api/generate-image-result":
+            self.handle_generate_image_result(parsed)
+            return
         super().do_GET()
 
     def handle_opx_diagnose(self):
@@ -760,6 +802,36 @@ class AppHandler(SimpleHTTPRequestHandler):
                 edit_brief=fields.get("editBrief", ""),
                 images=files,
             )
+        except Exception as exc:  # noqa: BLE001
+            self.send_json(500, {"error": str(exc)})
+            return
+
+        self.send_json(200, result)
+
+    def handle_generate_image_result(self, parsed):
+        if not self.is_local_request():
+            password = os.environ.get("MUSEFRAME_ACCESS_PASSWORD", "").strip()
+            request_password = self.headers.get("X-MuseFrame-Password", "").strip()
+            if not password or request_password != password:
+                self.send_json(403, {"error": "未授权访问"})
+                return
+
+        api_key = (
+            os.environ.get("IMAGE_API_KEY", "").strip()
+            or os.environ.get("OPENAI_API_KEY", "").strip()
+        )
+        if not api_key:
+            self.send_json(500, {"error": "服务器还没有配置生图 API Key"})
+            return
+
+        query = parse_qs(parsed.query)
+        task_id = (query.get("id") or [""])[0].strip()
+        if not task_id:
+            self.send_json(400, {"error": "缺少任务 ID"})
+            return
+
+        try:
+            result = query_image_generation_result(api_key, task_id)
         except Exception as exc:  # noqa: BLE001
             self.send_json(500, {"error": str(exc)})
             return
