@@ -385,7 +385,7 @@ def image_size_from_ratio(ratio, quality):
 
 
 def image_quality_for_grsai(quality, model):
-    if model == "gpt-image-2":
+    if model in {"gpt-image-2", "gpt-image-2.5"}:
         return "auto"
     if quality == "1k":
         return "low"
@@ -397,7 +397,7 @@ def image_quality_for_grsai(quality, model):
 
 
 def image_api_url():
-    base_url = os.environ.get("IMAGE_API_BASE_URL", "").strip() or "https://grsaiapi.com"
+    base_url = os.environ.get("IMAGE_API_BASE_URL", "").strip() or "https://grsai.dakka.com.cn"
     return base_url.rstrip("/") + "/v1/api/generate"
 
 
