@@ -7,6 +7,7 @@ import re
 import shutil
 import subprocess
 import tempfile
+import time
 from datetime import datetime
 from email.parser import BytesParser
 from email.policy import default as email_policy
@@ -282,7 +283,7 @@ def call_image_generation_api(api_key, prompt, mode, ratio, quality, edit_mode, 
         "images": [f"data:{image['mimeType']};base64,{image['data']}" for image in images],
         "aspectRatio": aspect_ratio,
         "quality": image_quality_for_grsai(quality, model),
-        "replyType": "json",
+        "replyType": "async",
     }
     req = request.Request(
         image_api_url(),
@@ -302,7 +303,43 @@ def call_image_generation_api(api_key, prompt, mode, ratio, quality, edit_mode, 
     except error.URLError as exc:
         raise RuntimeError(f"生图服务网络错误：{exc.reason}") from exc
 
-    return normalize_image_response(response_json)
+    return wait_for_image_result(api_key, response_json)
+
+
+def wait_for_image_result(api_key, response_json):
+    status = response_json.get("status") if isinstance(response_json, dict) else None
+    if status == "succeeded":
+        return normalize_image_response(response_json)
+    if status in {"failed", "violation"}:
+        raise RuntimeError(f"生图任务失败：{response_json.get('error') or status}")
+
+    task_id = response_json.get("id") if isinstance(response_json, dict) else None
+    if not task_id:
+        return normalize_image_response(response_json)
+
+    for _ in range(60):
+        time.sleep(3)
+        req = request.Request(
+            image_result_url(task_id),
+            headers={"Authorization": f"Bearer {api_key}"},
+            method="GET",
+        )
+        try:
+            with request.urlopen(req, timeout=30) as resp:
+                latest = json.loads(resp.read().decode("utf-8"))
+        except error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")
+            raise RuntimeError(f"查询生图结果失败：{exc.code} {detail}") from exc
+        except error.URLError as exc:
+            raise RuntimeError(f"查询生图结果网络错误：{exc.reason}") from exc
+
+        latest_status = latest.get("status") if isinstance(latest, dict) else None
+        if latest_status == "succeeded":
+            return normalize_image_response(latest)
+        if latest_status in {"failed", "violation"}:
+            raise RuntimeError(f"生图任务失败：{latest.get('error') or latest_status}")
+
+    raise RuntimeError(f"生图还在排队，请稍后重试。任务ID：{task_id}")
 
 
 def normalize_image_response(response_json):
@@ -399,6 +436,11 @@ def image_quality_for_grsai(quality, model):
 def image_api_url():
     base_url = os.environ.get("IMAGE_API_BASE_URL", "").strip() or "https://grsai.dakka.com.cn"
     return base_url.rstrip("/") + "/v1/api/generate"
+
+
+def image_result_url(task_id):
+    base_url = os.environ.get("IMAGE_API_BASE_URL", "").strip() or "https://grsai.dakka.com.cn"
+    return base_url.rstrip("/") + "/v1/api/result?id=" + task_id
 
 
 def extraction_prompt():
