@@ -1,338 +1,367 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>刘扬金-AIGC简历</title>
   <style>
-    @page { size: A4; margin: 7mm; }
-    * { box-sizing: border-box; }
+    @page {
+      size: A4;
+      margin: 10mm;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
     body {
       margin: 0;
-      color: #1d1d1f;
-      font-family: "Microsoft YaHei", "PingFang SC", "Segoe UI", sans-serif;
-      background: #f5f5f7;
-      line-height: 1.43;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
+      background: #f5f7fb;
+      color: #171b26;
+      font-family: "Microsoft YaHei", "PingFang SC", Arial, sans-serif;
+      line-height: 1.45;
     }
+
     .sheet {
-      position: relative;
-      height: 283mm;
-      overflow: hidden;
-      padding: 13px;
-      border-radius: 22px;
+      width: 190mm;
+      min-height: 277mm;
+      margin: 0 auto;
+      padding: 12mm;
       background:
-        radial-gradient(circle at 82% 0%, rgba(0, 113, 227, 0.11), transparent 45%),
-        linear-gradient(180deg, #ffffff 0%, #fbfbfd 100%);
+        radial-gradient(circle at 92% 6%, rgba(66, 145, 255, 0.12), transparent 26%),
+        linear-gradient(135deg, #ffffff 0%, #f7fbff 100%);
+      border: 1px solid #dce7f6;
+      border-radius: 18px;
     }
-    .sheet::before {
-      content: "";
-      position: absolute;
-      right: -70px;
-      top: -90px;
-      width: 250px;
-      height: 250px;
-      border-radius: 50%;
-      border: 1px solid rgba(0, 113, 227, 0.16);
-      background: repeating-radial-gradient(circle, transparent 0 22px, rgba(0, 113, 227, 0.05) 23px 24px);
-    }
-    .header {
-      position: relative;
+
+    header {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1.2fr 0.8fr;
       gap: 18px;
-      align-items: end;
-      padding: 18px 20px 14px;
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      border-radius: 20px;
-      background: rgba(255, 255, 255, 0.82);
+      padding-bottom: 14px;
+      border-bottom: 1px solid #dbe5f2;
     }
+
+    .eyebrow {
+      margin: 0 0 8px;
+      color: #367cff;
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
     h1 {
       margin: 0;
-      font-size: 39px;
+      font-size: 38px;
+      letter-spacing: -0.04em;
       line-height: 1;
-      letter-spacing: -2px;
     }
-    .title {
-      margin: 8px 0 0;
-      color: #0071e3;
-      font-size: 17px;
+
+    .role {
+      margin: 10px 0 0;
+      font-size: 18px;
       font-weight: 800;
     }
-    .intro {
-      max-width: 520px;
+
+    .summary {
       margin: 10px 0 0;
-      color: #55565a;
-      font-size: 11.8px;
+      color: #4b5565;
+      font-size: 12.5px;
     }
+
     .contact {
-      display: grid;
-      gap: 7px;
-      min-width: 190px;
-      color: #55565a;
+      align-self: end;
+      padding: 14px;
+      border: 1px solid #d2e3ff;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.72);
+    }
+
+    .contact p {
+      margin: 0 0 7px;
+      color: #3d4656;
       font-size: 11.5px;
-      text-align: right;
     }
+
     .contact b {
-      color: #1d1d1f;
-      font-size: 12px;
+      display: inline-block;
+      width: 44px;
+      color: #101522;
     }
-    .layout {
-      position: relative;
-      display: grid;
-      grid-template-columns: 30% 70%;
-      gap: 13px;
-      margin-top: 11px;
-    }
-    aside,
-    main section {
-      border: 1px solid rgba(0, 0, 0, 0.06);
-      border-radius: 18px;
-      background: rgba(255, 255, 255, 0.84);
-    }
-    aside {
-      padding: 14px 13px;
-    }
+
     main {
+      display: grid;
+      grid-template-columns: 0.74fr 1.26fr;
+      gap: 16px;
+      margin-top: 14px;
+    }
+
+    section {
+      margin-bottom: 13px;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    h2::before {
+      content: "";
+      width: 18px;
+      height: 5px;
+      border-radius: 999px;
+      background: #367cff;
+    }
+
+    .card {
+      padding: 12px;
+      border: 1px solid #dce7f6;
+      border-radius: 16px;
+      background: rgba(255, 255, 255, 0.78);
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 7px;
+    }
+
+    .chip {
+      padding: 6px 8px;
+      border: 1px solid #d5e4f7;
+      border-radius: 999px;
+      background: #fff;
+      color: #384355;
+      font-size: 10.8px;
+      font-weight: 700;
+    }
+
+    .metric {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .metric div {
+      padding: 9px;
+      border-radius: 12px;
+      background: #eef6ff;
+      border: 1px solid #d2e6ff;
+    }
+
+    .metric strong {
+      display: block;
+      color: #0b63ce;
+      font-size: 17px;
+      line-height: 1;
+    }
+
+    .metric span {
+      display: block;
+      margin-top: 4px;
+      color: #536174;
+      font-size: 10px;
+    }
+
+    .item {
+      padding: 10px 0;
+      border-bottom: 1px solid #e5edf7;
+    }
+
+    .item:last-child {
+      border-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .item h3 {
+      margin: 0;
+      font-size: 13.5px;
+    }
+
+    .item time {
+      display: block;
+      margin: 3px 0 5px;
+      color: #367cff;
+      font-size: 10.5px;
+      font-weight: 800;
+    }
+
+    ul {
+      margin: 6px 0 0;
+      padding-left: 16px;
+      color: #3d4656;
+      font-size: 11.2px;
+    }
+
+    li {
+      margin: 4px 0;
+    }
+
+    .project {
       display: grid;
       gap: 8px;
     }
-    main section {
-      padding: 11px 14px 10px;
+
+    .project .item {
+      padding: 9px;
+      border: 1px solid #e0eaf7;
+      border-radius: 14px;
+      background: #fff;
     }
-    h2 {
-      margin: 0 0 9px;
-      color: #1d1d1f;
-      font-size: 15px;
-      line-height: 1.2;
-      letter-spacing: -0.3px;
+
+    .project p,
+    .edu p {
+      margin: 5px 0 0;
+      color: #4b5565;
+      font-size: 11.2px;
     }
-    h2::after {
-      content: "";
-      display: block;
-      width: 34px;
-      height: 3px;
-      margin-top: 5px;
-      border-radius: 999px;
-      background: #0071e3;
-    }
-    h3 {
-      margin: 0 0 4px;
-      color: #1d1d1f;
-      font-size: 12.6px;
-      line-height: 1.35;
-    }
-    p, li {
-      color: #55565a;
-      font-size: 10.25px;
-    }
-    p {
-      margin: 0 0 6px;
-    }
-    ul {
-      margin: 0;
-      padding-left: 15px;
-    }
-    li {
-      margin-bottom: 2px;
-    }
-    .side-block {
-      margin-bottom: 11px;
-    }
-    .side-block:last-child {
-      margin-bottom: 0;
-    }
-    .chip-list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-    }
-    .chip-list span {
-      padding: 6px 8px;
-      border-radius: 999px;
-      color: #0071e3;
-      background: rgba(0, 113, 227, 0.08);
-      font-size: 10px;
-      font-weight: 700;
-    }
-    .tool-item {
-      margin-bottom: 6px;
-    }
-    .tool-item b {
-      display: block;
-      margin-bottom: 2px;
-      color: #1d1d1f;
-      font-size: 11px;
-    }
-    .tool-item span {
-      color: #66676b;
-      font-size: 10.2px;
-    }
-    .job {
-      padding-top: 8px;
-      margin-top: 7px;
-      border-top: 1px solid rgba(0, 0, 0, 0.06);
-    }
-    .job:first-of-type {
-      padding-top: 0;
-      margin-top: 0;
-      border-top: 0;
-    }
-    .job time {
-      display: block;
-      margin-bottom: 2px;
-      color: #0071e3;
-      font-size: 10.2px;
-      font-weight: 800;
-    }
-    .skill-grid {
-      display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 7px;
-    }
-    .skill-grid div {
-      min-height: 45px;
-      padding: 7px 9px;
-      border-radius: 12px;
-      background: #f5f5f7;
-    }
-    .skill-grid b {
-      display: block;
-      margin-bottom: 3px;
-      color: #1d1d1f;
-      font-size: 10.25px;
-    }
-    .skill-grid span {
-      color: #66676b;
-      font-size: 10px;
-    }
-    .edu-line {
-      display: flex;
-      justify-content: space-between;
-      gap: 12px;
-      color: #55565a;
-      font-size: 10.8px;
+
+    .note {
+      color: #536174;
+      font-size: 10.5px;
     }
   </style>
 </head>
 <body>
   <div class="sheet">
-    <header class="header">
+    <header>
       <div>
+        <p class="eyebrow">AIGC Visual Designer / AI Workflow Builder</p>
         <h1>刘扬金</h1>
-        <p class="title">AIGC视觉设计师｜AI视频创作｜AI广告素材设计｜短视频创意制作</p>
-        <p class="intro">专注跨境电商与短视频广告场景，能够完成产品卖点拆解、脚本分镜、AI出图、AI视频生成、后期包装与多版本素材测试。曾主导制作 Facebook 爆款视频案例，单条视频获得 800w+ 播放、2w+ 点赞。</p>
+        <p class="role">AIGC视觉设计师｜AI视频创作｜AI广告素材设计｜AI工作流搭建</p>
+        <p class="summary">专注跨境电商广告素材与短视频内容生产，能够完成产品卖点拆解、脚本分镜、AI出图、AI视频生成、后期包装、多版本素材测试，并具备 API 调用、RAG 知识库、网页工具部署等 AI 落地能力。</p>
       </div>
       <div class="contact">
-        <span><b>22岁 / 男</b></span>
-        <span>深圳</span>
-        <span>2056481944@qq.com</span>
-        <span>大理大学 / 视觉传达设计</span>
+        <p><b>年龄</b>22岁｜男</p>
+        <p><b>城市</b>深圳</p>
+        <p><b>邮箱</b>2056481944@qq.com</p>
+        <p><b>学历</b>大理大学｜视觉传达设计｜本科</p>
       </div>
     </header>
 
-    <div class="layout">
+    <main>
       <aside>
-        <div class="side-block">
-          <h2>核心工具</h2>
-          <div class="tool-item"><b>AI视频</b><span>即梦 / 可灵 / Veo / H3 / Wan</span></div>
-          <div class="tool-item"><b>AI图片</b><span>Nano Banana / image2</span></div>
-          <div class="tool-item"><b>大模型</b><span>ChatGPT / Gemini / DeepSeek / Kimi</span></div>
-          <div class="tool-item"><b>Agent / 自动化</b><span>Codex / Coze / Flow / Lovart / 马维斯</span></div>
-          <div class="tool-item"><b>后期设计</b><span>剪映 / Photoshop / Figma / ElevenLabs</span></div>
-        </div>
-
-        <div class="side-block">
-          <h2>能力标签</h2>
-          <div class="chip-list">
-            <span>跨境电商内容</span>
-            <span>AI广告素材</span>
-            <span>AI视频生成</span>
-            <span>详情页出图SOP</span>
-            <span>脚本分镜</span>
-            <span>爆款钩子</span>
-            <span>TikTok</span>
-            <span>Facebook</span>
-            <span>独立站</span>
-            <span>API</span>
-            <span>RAG</span>
-            <span>本地大模型</span>
-          </div>
-        </div>
-
-        <div class="side-block">
-          <h2>作品方向</h2>
-          <p>商业广告动态视频、电子产品广告视频、服装商业广告视频、详情页自动化出图 SOP、广告分镜拆解、产品场景视觉。</p>
-        </div>
-      </aside>
-
-      <main>
         <section>
-          <h2>个人优势</h2>
-          <p>具备 AIGC 内容全流程制作能力，可围绕产品属性与目标用户完成内容方向制定、广告脚本策划、分镜拆解、模型生成、视觉筛选和成片交付。具备 API 调用、RAG 知识库、本地大模型、网页部署和轻量 AI 助手搭建基础，可参与团队内容生产提效与内部工具建设。</p>
+          <h2>核心工具</h2>
+          <div class="card chips">
+            <span class="chip">即梦</span>
+            <span class="chip">可灵</span>
+            <span class="chip">Veo</span>
+            <span class="chip">H3</span>
+            <span class="chip">Wan</span>
+            <span class="chip">Nano Banana</span>
+            <span class="chip">image2</span>
+            <span class="chip">GPT Image 2.5</span>
+            <span class="chip">ChatGPT</span>
+            <span class="chip">Gemini</span>
+            <span class="chip">DeepSeek</span>
+            <span class="chip">Kimi</span>
+            <span class="chip">Codex</span>
+            <span class="chip">Coze</span>
+            <span class="chip">Flow</span>
+            <span class="chip">Lovart</span>
+            <span class="chip">剪映</span>
+            <span class="chip">Photoshop</span>
+            <span class="chip">Figma</span>
+            <span class="chip">ElevenLabs</span>
+          </div>
         </section>
 
         <section>
-          <h2>项目作品</h2>
-          <ul>
-            <li><b>AI自动化详情页出图 SOP：</b>基于产品卖点、人群痛点与使用场景批量生成详情页视觉、卖点图和广告测试素材。</li>
-            <li><b>Facebook爆款视频案例：</b>主导制作跨境电商广告视频，单条视频获得 800w+ 播放、2w+ 点赞，带来约 40w 美金销售额；同方向裂变视频组周期销售额约 100w 美金。</li>
-            <li><b>商业广告视频：</b>完成商业广告、电子产品、服装方向 AI 视频案例，覆盖商品质感、镜头节奏、场景氛围与品牌表达。</li>
-            <li><b>广告分镜拆解：</b>可将产品、场景、镜头节奏和画面表达拆成可执行分镜，用于生成与协作。</li>
-          </ul>
+          <h2>AI落地能力</h2>
+          <div class="card chips">
+            <span class="chip">API 调用</span>
+            <span class="chip">RAG 知识库</span>
+            <span class="chip">Agent 流程</span>
+            <span class="chip">Prompt 工程</span>
+            <span class="chip">Function Call</span>
+            <span class="chip">Ollama / 本地模型</span>
+            <span class="chip">GitHub / Render 部署</span>
+            <span class="chip">前后端 Demo</span>
+          </div>
+        </section>
+
+        <section class="edu">
+          <h2>教育经历</h2>
+          <div class="card">
+            <h3>大理大学｜视觉传达设计｜本科</h3>
+            <p>2021 - 2025｜专业排名前 10%</p>
+            <p>主修：平面设计、包装设计、标志设计、字体设计、版式设计。</p>
+          </div>
+        </section>
+      </aside>
+
+      <div>
+        <section>
+          <h2>重点成果</h2>
+          <div class="card">
+            <h3>Facebook 跨境电商爆款视频案例</h3>
+            <p class="note">主导制作广告视频素材，单条视频获得 800w+ 播放、1.6w+ 点赞，带来约 40w 美金销售额；围绕同一素材方向裂变迭代，视频组周期销售额约 100w 美金。</p>
+            <div class="metric">
+              <div><strong>800w+</strong><span>单条视频播放</span></div>
+              <div><strong>1.6w+</strong><span>点赞互动</span></div>
+              <div><strong>40w</strong><span>美金单条销售额</span></div>
+              <div><strong>100w</strong><span>美金视频组周期销售额</span></div>
+            </div>
+          </div>
         </section>
 
         <section>
           <h2>工作经历</h2>
-          <div class="job">
-            <time>2025.11 - 至今</time>
-            <h3>深圳骏弘科技有限公司｜AI视频剪辑 / AIGC视觉设计师</h3>
-            <ul>
-              <li>负责跨境电商产品 AI 视频创意策划、脚本拆解、画面生成、后期剪辑与成片交付，服务 TikTok、Facebook、独立站及跨境平台内容场景。</li>
-              <li>围绕产品卖点输出广告素材，覆盖痛点型、对比型、剧情型、种草型等内容方向。</li>
-              <li>结合平台调性、用户兴趣点与产品特性，优化视频钩子、镜头节奏、字幕包装与视觉表达。</li>
-            </ul>
-          </div>
-          <div class="job">
-            <time>2025.07 - 2025.10</time>
-            <h3>深圳志会嘉科技有限公司｜AI设计师</h3>
-            <ul>
-              <li>负责 AI 图像生成、短视频制作及设计需求支持，提升视觉内容产出效率与创意表现。</li>
-              <li>参与 TikTok 平台视频剪辑与视觉包装，根据内容风格与用户偏好优化节奏、字幕、封面及画面呈现。</li>
-              <li>支持亚马逊运营制作产品图片、展示视频及相关视觉素材，入职首月获得部门绩效第一。</li>
-            </ul>
-          </div>
-          <div class="job">
-            <time>2024.09 - 2025.01</time>
-            <h3>深圳奥萨医药有限公司｜平面设计实习生</h3>
-            <ul>
-              <li>参与医药及保健品相关视觉内容设计，输出宣传物料、海报、详情页及推广视觉。</li>
-              <li>基于产品成分、功效及适用人群提炼核心卖点，优化信息层级、主视觉表达与页面呈现逻辑。</li>
-              <li>参与夫莱特品牌视觉优化项目，负责品牌页面、产品展示内容及推广视觉设计。</li>
-            </ul>
-          </div>
-        </section>
-
-        <section>
-          <h2>专业技能</h2>
-          <div class="skill-grid">
-            <div><b>AIGC内容全流程</b><span>脚本策划、分镜拆解、提示词设计、画面生成、视频包装与成片交付。</span></div>
-            <div><b>商业广告素材</b><span>商业广告图、产品场景图、服装广告视频、电子产品广告视频。</span></div>
-            <div><b>AI工作流</b><span>详情页自动化出图 SOP、API 调用、RAG、本地大模型、网页部署。</span></div>
-            <div><b>跨境平台理解</b><span>TikTok、Facebook、独立站内容逻辑与短视频素材测试思路。</span></div>
+          <div class="card">
+            <div class="item">
+              <h3>深圳骏弘科技有限公司｜AI视频剪辑 / AIGC视觉设计师</h3>
+              <time>2025.11 - 至今</time>
+              <ul>
+                <li>负责跨境电商产品 AI 视频创意策划、脚本拆解、画面生成、后期剪辑与成片交付，服务 TikTok、Facebook、独立站及跨境平台内容场景。</li>
+                <li>围绕产品卖点输出广告素材，覆盖痛点型、对比型、剧情型、种草型等多种内容方向，并根据平台反馈迭代镜头节奏与视觉包装。</li>
+                <li>搭建并测试 MuseFrame 生图生视频工具、爆款视频拆解助手、企业知识库助手等 AI 工作流，提高素材生产与复盘效率。</li>
+              </ul>
+            </div>
+            <div class="item">
+              <h3>深圳志会嘉科技有限公司｜AI设计师</h3>
+              <time>2025.07 - 2025.10</time>
+              <ul>
+                <li>负责 AI 图像生成、短视频制作及设计需求支持，提升视觉内容产出效率与创意表现。</li>
+                <li>参与 TikTok 平台视频剪辑与视觉包装，根据内容风格与用户偏好优化节奏、字幕、封面及画面呈现。</li>
+              </ul>
+            </div>
+            <div class="item">
+              <h3>深圳奥萨医药有限公司｜平面设计实习生</h3>
+              <time>2024.09 - 2025.01</time>
+              <ul>
+                <li>参与医药及保健品相关视觉内容设计，输出宣传物料、电商海报、详情页及相关推广视觉。</li>
+                <li>参与夫莱特品牌视觉优化项目，负责品牌相关页面、产品展示内容及推广视觉设计。</li>
+              </ul>
+            </div>
           </div>
         </section>
 
         <section>
-          <h2>教育经历</h2>
-          <div class="edu-line">
-            <b>大理大学｜视觉传达设计｜本科｜2021 - 2025</b>
-            <span>专业排名前 10%</span>
+          <h2>AI项目 / 工作流</h2>
+          <div class="project">
+            <div class="item">
+              <h3>MuseFrame 生图生视频工作台</h3>
+              <p>接入第三方 API，实现文生图、图生图、文生视频、图生视频、多参考图、首尾帧、比例模型选择、作品记录与网页部署。</p>
+            </div>
+            <div class="item">
+              <h3>企业知识库问答助手</h3>
+              <p>基于 SOP、FAQ、产品资料和复盘案例搭建 RAG 问答流程，支持资料检索、来源引用和业务建议输出。</p>
+            </div>
+            <div class="item">
+              <h3>9图主图详情页自动化出图 SOP</h3>
+              <p>围绕产品图、卖点、人群和使用场景，快速生成主图、详情页、广告测试图方向，服务电商上新与素材批量生产。</p>
+            </div>
           </div>
-          <p>主修平面设计、包装设计、标志设计、字体设计、版式设计。</p>
         </section>
-      </main>
-    </div>
+      </div>
+    </main>
   </div>
 </body>
 </html>
