@@ -6,6 +6,38 @@ import os
 import re
 import time
 import socket
+from concurrent.futures import ThreadPoolExecutor
+from threading import Lock
+from uuid import UUID
+
+TASKS = {}
+TASK_LOCK = Lock()
+TASK_POOL = ThreadPoolExecutor(max_workers=4)
+
+
+def run_task(task_id, body):
+    with TASK_LOCK:
+        TASKS[task_id]["status"] = "running"
+    try:
+        query = body["query"]
+        role = str(body.get("role", "运营诊断"))
+        history = body.get("history", [])
+        history = [item for item in history[-3:] if isinstance(item, dict)] if isinstance(history, list) else []
+        chunks = load_documents()
+        matches = search(query, chunks)
+        answer = call_model(build_prompt(query, matches, role, history)) if matches else "没有检索到相关资料。"
+        result = {
+            "answer": answer, "model": DEFAULT_MODEL,
+            "sources": [{"source": item["source"], "chunkId": item["chunk_id"],
+                         "category": item["category"], "text": item["text"]} for item in matches],
+        }
+        update = {"status": "completed", "result": result}
+    except ModelError as exc:
+        update = {"status": "failed", "error": str(exc), "code": exc.code}
+    except Exception:
+        update = {"status": "failed", "error": "服务处理异常，请稍后重试。", "code": "TASK_ERROR"}
+    with TASK_LOCK:
+        TASKS[task_id].update(update, finishedAt=time.time())
 
 
 ROOT = Path(__file__).resolve().parent
@@ -265,6 +297,19 @@ class RagHandler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
     def do_GET(self):
+        if self.path.startswith("/api/tasks/"):
+            if not check_password(self.headers):
+                self.send_json(401, {"error": "需要访问密码"})
+                return
+            task_id = self.path.rsplit("/", 1)[-1]
+            with TASK_LOCK:
+                task = TASKS.get(task_id)
+                payload = dict(task) if task else None
+            self.send_json(200 if payload else 404, payload or {
+                "code": "TASK_MISSING",
+                "error": "任务已过期或服务已重启，无法恢复本次结果。问题已保留，请重新发送。",
+            })
+            return
         if self.path == "/api/knowledge":
             if not check_password(self.headers):
                 self.send_json(401, {"error": "需要访问密码"})
@@ -276,6 +321,10 @@ class RagHandler(SimpleHTTPRequestHandler):
     def do_POST(self):
         if self.path.startswith("/api/") and not check_password(self.headers):
             self.send_json(401, {"error": "需要访问密码"})
+            return
+
+        if self.path == "/api/tasks":
+            self.create_task()
             return
 
         if self.path == "/api/upload":
@@ -335,6 +384,36 @@ class RagHandler(SimpleHTTPRequestHandler):
             self.send_json(exc.status, {"error": str(exc), "code": exc.code})
         except Exception as exc:  # noqa: BLE001
             self.send_json(500, {"error": str(exc)})
+
+    def create_task(self):
+        try:
+            length = int(self.headers.get("Content-Length", "0"))
+            if not 0 < length <= 100000:
+                self.send_json(400, {"error": "请求内容过大或为空。"})
+                return
+            body = json.loads(self.rfile.read(length).decode("utf-8"))
+            task_id = str(UUID(body["id"]))
+            query = str(body.get("query", "")).strip()
+            if not query or len(query) > 12000:
+                self.send_json(400, {"error": "请输入 1 至 12000 字的问题。"})
+                return
+            body["query"] = query
+            with TASK_LOCK:
+                expired = [key for key, task in TASKS.items()
+                           if task.get("finishedAt", float("inf")) < time.time() - 3600]
+                for key in expired:
+                    del TASKS[key]
+                if task_id in TASKS:
+                    payload = dict(TASKS[task_id])
+                elif len(TASKS) >= 128 or sum(t["status"] in ("queued", "running") for t in TASKS.values()) >= 16:
+                    payload = None
+                else:
+                    TASKS[task_id] = {"id": task_id, "status": "queued", "createdAt": time.time()}
+                    payload = dict(TASKS[task_id])
+                    TASK_POOL.submit(run_task, task_id, body)
+            self.send_json(202 if payload else 429, payload or {"error": "当前任务较多，请稍后再试。"})
+        except (ValueError, KeyError, TypeError):
+            self.send_json(400, {"error": "请求格式不正确，请刷新页面后重试。"})
 
     def handle_upload(self):
         try:

@@ -19,7 +19,7 @@ $("#query").addEventListener("input",saveDraft); $("#role").addEventListener("ch
 document.querySelectorAll("[data-demo]").forEach(el => el.onclick = () => { $("#query").value = el.dataset.demo; $("#role").value = el.dataset.role; saveDraft(); $("#query").focus(); });
 function resetMemory() { memory = []; saveStore("ragConversationMemory",memory); }
 $("#clear-memory").onclick = () => { resetMemory(); notify("上下文已重置，历史问答仍保留。"); };
-$("#new-chat").onclick = () => { if (controller) { notify("请先停止当前等待，再新建问答。"); return; } resetMemory(); current = null; $("#query").value = ""; $("#answer").innerHTML = emptyAnswer; $("#sources").innerHTML = '<p class="empty-copy">检索到的资料片段将在这里展示。</p>'; $("#answer-status").textContent="等待提问"; $("#retrieval-status").textContent="等待检索"; $("#form-message").textContent=""; setResultActions(false); saveDraft(); switchPage("ask"); $("#query").focus(); };
+$("#new-chat").onclick = () => { if (controller) { notify("请先停止当前等待，再新建问答。"); return; } saveStore("ragPendingTask",null); resetMemory(); current = null; $("#query").value = ""; $("#answer").innerHTML = emptyAnswer; $("#sources").innerHTML = '<p class="empty-copy">检索到的资料片段将在这里展示。</p>'; $("#answer-status").textContent="等待提问"; $("#retrieval-status").textContent="等待检索"; $("#form-message").textContent=""; setResultActions(false); saveDraft(); switchPage("ask"); $("#query").focus(); };
 let passwordRequest = null;
 function requestPassword() {
   if (passwordRequest) return passwordRequest;
@@ -66,20 +66,49 @@ function renderSources(items) { $("#sources").innerHTML = items.length ? items.m
 function setResultActions(enabled) { $("#copy-answer").disabled=!enabled; $("#export-answer").disabled=!enabled; }
 function showRecord(record) { current=record; renderAnswer(record.answer); renderSources(record.sources||[]); $("#answer-status").textContent="已完成"; $("#retrieval-status").textContent="引用 "+(record.sources||[]).length+" 个片段";setResultActions(true); }
 function setBusy(value) { $("#ask").disabled=value; $("#cancel").hidden=!value; $("#ask").textContent=value?"正在生成…":"生成建议 ↗"; $("#answer").setAttribute("aria-busy",String(value)); }
-$("#ask").onclick = async () => {
-  if(controller)return; const question=$("#query").value.trim(); if(!question){$("#form-message").textContent="先描述你遇到的问题。";$("#query").focus();return;}
-  const selectedRole=$("#role").value; const requestController=new AbortController(); controller=requestController; let timedOut=false; const timer=setTimeout(()=>{timedOut=true;requestController.abort();},150000);
+function pausePoll(ms, signal) {
+  return new Promise((resolve,reject) => {
+    const abort=()=>{clearTimeout(timer);reject(new DOMException("Stopped","AbortError"));};
+    const timer=setTimeout(()=>{signal.removeEventListener("abort",abort);resolve();},ms);
+    signal.addEventListener("abort",abort,{once:true}); if(signal.aborted)abort();
+  });
+}
+async function waitForTask(task, signal) {
+  for (;;) {
+    if(signal.aborted)throw new DOMException("Stopped","AbortError");
+    try {
+      const requestSignal=AbortSignal.any([signal,AbortSignal.timeout(20000)]);
+      const state=await api(task.accepted?"/api/tasks/"+task.id:"/api/tasks", task.accepted?{signal:requestSignal}:{method:"POST",headers:{"Content-Type":"application/json"},signal:requestSignal,body:JSON.stringify(task)});
+      task.accepted=true;saveStore("ragPendingTask",task);
+      if(state.status==="completed"){saveStore("ragPendingTask",null);return state.result;}
+      if(state.status==="failed"){saveStore("ragPendingTask",null);const e=new Error(state.error);e.terminal=true;throw e;}
+      $("#answer-status").textContent=state.status==="queued"?"排队中":"正在生成";
+      $("#form-message").textContent="后台任务进行中，可刷新页面恢复等待。";
+    } catch(error) {
+      if(signal.aborted)throw new DOMException("Stopped","AbortError");
+      if(error.terminal || (error.status>=400 && error.status<500 && error.status!==408)) {saveStore("ragPendingTask",null);throw error;}
+      $("#answer-status").textContent="连接恢复中";
+      $("#form-message").textContent="网络暂时中断，正在重新查询同一个任务，不会重复生成。";
+    }
+    await pausePoll(3000,signal);
+  }
+}
+async function generateAnswer(pending=null) {
+  if(controller)return; const question=pending?.query || $("#query").value.trim(); if(!question){$("#form-message").textContent="先描述你遇到的问题。";$("#query").focus();return;}
+  const selectedRole=pending?.role || $("#role").value; const requestController=new AbortController(); controller=requestController; let timedOut=false; const timer=setTimeout(()=>{timedOut=true;requestController.abort();},600000);
+  const task=pending || {id:crypto.randomUUID(),query:question,role:selectedRole,history:$("#use-memory").checked?memory.slice(-3):[],accepted:false};saveStore("ragPendingTask",task);
   $("#form-message").textContent="";setBusy(true);setResultActions(false);$("#answer-status").textContent="正在处理";$("#retrieval-status").textContent="等待返回";$("#answer").innerHTML='<div class="busy-indicator"><span class="spinner"></span><span>正在检索资料并生成建议，请稍候…</span></div>';$("#sources").innerHTML='<p class="empty-copy">返回后展示本次检索依据。</p>';
   try {
-    const data=await api("/api/ask",{method:"POST",headers:{"Content-Type":"application/json"},signal:requestController.signal,body:JSON.stringify({query:question,role:selectedRole,history:$("#use-memory").checked?memory.slice(-3):[]})});
+    const data=await waitForTask(task,requestController.signal);
     if(!data || typeof data.answer!=="string")throw new Error("服务没有返回回答，请重试。");
-    const record={id:crypto.randomUUID(),question,answer:data.answer,role:selectedRole,sources:Array.isArray(data.sources)?data.sources:[],createdAt:Date.now()};
-    showRecord(record); history=[record,...history].slice(0,100);saveStore("ragHistoryV2",history);renderHistory();memory.push({question,answer:record.answer.slice(0,800)});memory=memory.slice(-6);saveStore("ragConversationMemory",memory);
+    const record={id:task.id,question,answer:data.answer,role:selectedRole,sources:Array.isArray(data.sources)?data.sources:[],createdAt:Date.now()};
+    showRecord(record);$("#form-message").textContent=""; history=[record,...history.filter(x=>x.id!==record.id)].slice(0,100);saveStore("ragHistoryV2",history);renderHistory();memory.push({question,answer:record.answer.slice(0,800)});memory=memory.slice(-6);saveStore("ragConversationMemory",memory);
   } catch(error) {
-    const text=error.name==="AbortError"?(timedOut?"等待超时，输入已保留。服务端请求可能仍在执行。":"已停止等待，输入已保留；服务端请求可能仍在执行。"):error.message;
-    $("#answer-status").textContent=error.name==="AbortError"?"等待已结束":"请求未完成";$("#form-message").textContent=text;$("#answer").innerHTML='<div class="empty-state"><span>↻</span><h3>你可以调整问题后重新发送</h3><p>'+esc(text)+'</p></div>';$("#sources").innerHTML='<p class="empty-copy">本次没有取得资料来源。</p>';$("#retrieval-status").textContent="未取得结果";
+    const text=error.name==="AbortError"?(timedOut?"暂时停止等待，任务编号已保留。点击生成按钮可继续查询原任务。":"已停止页面等待，后台任务继续执行。点击生成按钮可恢复查询。"):error.message;
+    $("#answer-status").textContent=error.name==="AbortError"?"等待已结束":"请求未完成";$("#form-message").textContent=text;$("#answer").innerHTML='<div class="empty-state"><span>↻</span><h3>输入和任务状态已保留</h3><p>'+esc(text)+'</p></div>';$("#sources").innerHTML='<p class="empty-copy">本次没有取得资料来源。</p>';$("#retrieval-status").textContent="未取得结果";
   } finally { clearTimeout(timer);controller=null;setBusy(false); }
 };
+$("#ask").onclick=()=>{const pending=readStore("ragPendingTask",null);generateAnswer(pending?.id && pending?.query ? pending : null);};
 $("#cancel").onclick=()=>controller?.abort();$("#query").addEventListener("keydown",e=>{if((e.ctrlKey||e.metaKey)&&e.key==="Enter"){e.preventDefault();$("#ask").click();}});
 $("#copy-answer").onclick=async()=>{if(!current)return;try{await navigator.clipboard.writeText(current.answer);notify("回答已复制");}catch{notify("复制不可用，请选中回答手动复制。");}};
 function download(name,content,type) {const url=URL.createObjectURL(new Blob([content],{type}));const a=document.createElement("a");a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
@@ -91,3 +120,4 @@ $("#import-history").onclick=()=>$("#history-file").click();$("#history-file").o
 function renderDocuments(){const term=$("#knowledge-search").value.trim().toLowerCase();const found=documents.filter(f=>(f.name+" "+f.category).toLowerCase().includes(term));$("#knowledge-summary").textContent=found.length+" / "+documents.length+" 份资料";$("#knowledge-files").innerHTML=found.length?found.map(f=>'<article class="knowledge-file"><div><strong>▤ '+esc(f.name)+'</strong><span>'+esc(f.category||"通用资料")+'</span></div><em>'+Number(f.chunks||0)+' 个片段</em></article>').join(""):'<p class="empty-copy">没有匹配的资料。</p>';}
 async function loadKnowledge(){const button=$("#refresh-knowledge");button.disabled=true;try{const data=await api("/api/knowledge");documents=Array.isArray(data.files)?data.files:[];$("#file-count").textContent=data.fileCount??documents.length;$("#chunk-count").textContent=data.chunkCount??"—";$("#system-status").innerHTML='<b>'+(data.hasApiKey&&data.externalAllowed?"● 知识库已连接":"○ 服务尚未就绪")+'</b><p>'+esc(data.hasApiKey&&data.externalAllowed?"检索资料后生成建议，回答附带引用。":"模型服务需要管理员完成配置。")+'</p>';renderDocuments();}catch(error){$("#system-status").innerHTML='<b>连接暂时中断</b><p>'+esc(error.message)+'</p>';$("#knowledge-files").innerHTML='<p class="empty-copy">暂时无法读取资料，请点击「刷新资料」重试。</p>';}finally{button.disabled=false;}}
 $("#knowledge-search").oninput=renderDocuments;$("#refresh-knowledge").onclick=loadKnowledge;renderHistory();loadKnowledge();
+const pendingTask=readStore("ragPendingTask",null);if(pendingTask?.id&&typeof pendingTask.query==="string"){ $("#query").value=pendingTask.query;saveDraft();generateAnswer(pendingTask);}
