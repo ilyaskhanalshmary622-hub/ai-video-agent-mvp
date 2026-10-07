@@ -160,13 +160,13 @@ def build_prompt(query, matches, role, history):
 {context}
 
 输出格式要求，非常重要：
-禁止使用 Markdown 语法。
-禁止使用 ##、**、---、表格、代码块、竖线表格。
+使用简洁的 Markdown 标题、短列表和加粗重点。
+不要使用表格，步骤使用有序列表。
 不要写“资料来源表格”。
 不要输出长篇解释。
 每行尽量短，直接说人话。
 
-请按这个结构输出，标题只用普通中文：
+请按这个结构输出，标题使用中文：
 直接结论
 一句话说优先怎么做。
 
@@ -239,32 +239,7 @@ def call_model(prompt):
 
 
 def clean_answer(text):
-    text = text.strip()
-    replacements = {
-        "**": "",
-        "##": "",
-        "---": "",
-        "```": "",
-    }
-    for old, new in replacements.items():
-        text = text.replace(old, new)
-
-    cleaned_lines = []
-    for line in text.splitlines():
-        line = line.strip()
-        if not line:
-            cleaned_lines.append("")
-            continue
-        if re.fullmatch(r"[\|\-\s:]+", line):
-            continue
-        if line.startswith("|") and line.endswith("|"):
-            line = "，".join(part.strip() for part in line.strip("|").split("|") if part.strip())
-        line = re.sub(r"^\s*[-*]\s+", "", line)
-        line = re.sub(r"^\s*\d+[.)、]\s*", "", line)
-        cleaned_lines.append(line)
-
-    text = "\n".join(cleaned_lines)
-    text = re.sub(r"\n{3,}", "\n\n", text)
+    # Keep structure intact; the UI escapes text before rendering Markdown.
     return text.strip()
 
 
