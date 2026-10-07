@@ -5,6 +5,7 @@ import json
 import os
 import re
 import time
+import socket
 
 
 ROOT = Path(__file__).resolve().parent
@@ -184,14 +185,17 @@ def build_prompt(query, matches, role, history):
 """.strip()
 
 
+class ModelError(Exception):
+    def __init__(self, code, message, status=502):
+        super().__init__(message)
+        self.code = code
+        self.status = status
+
+
 def ensure_external_allowed():
     if os.environ.get("RAG_ALLOW_EXTERNAL", "").strip() == "1":
         return
-    raise RuntimeError(
-        "安全开关未开启：网页会把检索到的知识库片段发送到 Agnes API。"
-        "如果你确认 knowledge 文件夹只是练习资料，可以在命令行里运行："
-        '$env:RAG_ALLOW_EXTERNAL="1" 后再重启服务。'
-    )
+    raise ModelError("MODEL_DISABLED", "模型连接尚未启用，请管理员检查服务配置。", 503)
 
 
 def call_model(prompt):
@@ -199,7 +203,7 @@ def call_model(prompt):
 
     api_key = os.environ.get("AGNES_API_KEY", "").strip()
     if not api_key:
-        raise RuntimeError("没有找到 AGNES_API_KEY。请先在当前命令行里设置。")
+        raise ModelError("MODEL_KEY_MISSING", "模型密钥尚未配置，请管理员补充后重试。", 503)
 
     payload = {
         "model": DEFAULT_MODEL,
@@ -227,15 +231,28 @@ def call_model(prompt):
         with request.urlopen(req, timeout=120) as resp:
             response_json = json.loads(resp.read().decode("utf-8"))
     except error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")
-        raise RuntimeError(f"Agnes API 错误：{exc.code}\n{detail}") from exc
+        messages = {
+            401: ("MODEL_AUTH", "模型服务认证失败，请管理员检查 API 密钥。"),
+            403: ("MODEL_ACCESS", "模型服务拒绝访问，请管理员检查账号和模型权限。"),
+            402: ("MODEL_BALANCE", "模型服务提示余额不足，请管理员检查额度。"),
+            429: ("MODEL_LIMIT", "模型服务额度或请求频率受限，请稍后重试或检查配额。"),
+            404: ("MODEL_NOT_FOUND", "模型或接口不存在，请管理员检查模型名称和接口地址。"),
+        }
+        code, message = messages.get(exc.code, ("MODEL_UPSTREAM", f"模型服务暂时异常（HTTP {exc.code}），输入已保留，请稍后重试。"))
+        raise ModelError(code, message) from exc
+    except (TimeoutError, socket.timeout) as exc:
+        raise ModelError("MODEL_TIMEOUT", "模型响应超时，输入已保留，请稍后重试。", 504) from exc
     except error.URLError as exc:
-        raise RuntimeError(f"网络错误：{exc.reason}") from exc
+        raise ModelError("MODEL_NETWORK", "暂时无法连接模型服务，输入已保留，请稍后重试。") from exc
+    except (ValueError, UnicodeError) as exc:
+        raise ModelError("MODEL_RESPONSE", "模型服务返回内容无法读取，请稍后重试。") from exc
 
-    choices = response_json.get("choices", [])
+    choices = response_json.get("choices", []) if isinstance(response_json, dict) else []
     if choices:
-        return clean_answer(choices[0].get("message", {}).get("content", ""))
-    raise RuntimeError("模型没有返回文本。")
+        content = choices[0].get("message", {}).get("content", "")
+        if isinstance(content, str) and content.strip():
+            return clean_answer(content)
+    raise ModelError("MODEL_EMPTY", "模型没有返回有效回答，请调整问题后重试。")
 
 
 def clean_answer(text):
@@ -314,6 +331,8 @@ class RagHandler(SimpleHTTPRequestHandler):
                     ],
                 },
             )
+        except ModelError as exc:
+            self.send_json(exc.status, {"error": str(exc), "code": exc.code})
         except Exception as exc:  # noqa: BLE001
             self.send_json(500, {"error": str(exc)})
 

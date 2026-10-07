@@ -20,15 +20,31 @@ document.querySelectorAll("[data-demo]").forEach(el => el.onclick = () => { $("#
 function resetMemory() { memory = []; saveStore("ragConversationMemory",memory); }
 $("#clear-memory").onclick = () => { resetMemory(); notify("上下文已重置，历史问答仍保留。"); };
 $("#new-chat").onclick = () => { if (controller) { notify("请先停止当前等待，再新建问答。"); return; } resetMemory(); current = null; $("#query").value = ""; $("#answer").innerHTML = emptyAnswer; $("#sources").innerHTML = '<p class="empty-copy">检索到的资料片段将在这里展示。</p>'; $("#answer-status").textContent="等待提问"; $("#retrieval-status").textContent="等待检索"; $("#form-message").textContent=""; setResultActions(false); saveDraft(); switchPage("ask"); $("#query").focus(); };
+let passwordRequest = null;
+function requestPassword() {
+  if (passwordRequest) return passwordRequest;
+  passwordRequest = new Promise(resolve => {
+    const dialog = document.createElement("dialog");
+    dialog.className = "access-dialog";
+    dialog.innerHTML = '<form method="dialog"><h2>访问企业知识助手</h2><p>输入访问密码后即可检索资料、生成回答。</p><label for="access-password">访问密码</label><input id="access-password" type="password" autocomplete="current-password" required autofocus><div><button class="ghost" value="cancel" formnovalidate>取消</button><button class="primary" value="login">继续</button></div></form>';
+    document.body.append(dialog);
+    dialog.addEventListener("close", () => {
+      const value = dialog.returnValue === "login" ? dialog.querySelector("input").value.trim() : "";
+      dialog.remove(); passwordRequest = null; resolve(value);
+    }, {once:true});
+    dialog.showModal();
+  });
+  return passwordRequest;
+}
 async function api(path, options = {}) {
   const headers = new Headers(options.headers || {}); if (accessPassword) headers.set("X-RAG-PASSWORD", accessPassword);
   let response = await fetch(path,{...options,headers});
   if (response.status === 401) {
-    const entered = window.prompt("请输入企业知识助手访问密码");
+    const entered = await requestPassword();
     if (entered) { accessPassword = entered.trim(); headers.set("X-RAG-PASSWORD", accessPassword); response = await fetch(path,{...options,headers}); if (response.ok) { try { localStorage.setItem("ragAccessPassword",accessPassword); } catch {} } }
   }
-  let data; try { data = await response.json(); } catch { throw new Error("服务暂时没有返回有效内容，请稍后重试。"); }
-  if (!response.ok) { const error = new Error(response.status === 401 ? "访问密码不正确，请重试。" : response.status >= 500 ? "服务暂时无法完成请求，输入已保留。请稍后重试，持续失败时联系管理员。" : data.error || "请求未完成，请重试。"); error.status = response.status; throw error; }
+  let data; try { data = await response.json(); } catch (error) { if (error.name === "AbortError") throw error; throw new Error(response.status === 504 || response.status === 524 ? "服务连接超时，输入已保留，请稍后重试。" : "服务暂时没有返回有效内容，请稍后重试。"); }
+  if (!response.ok) { const error = new Error(response.status === 401 ? "访问密码未通过验证，请重新输入。" : data.code ? data.error : response.status >= 500 ? "服务暂时无法完成请求，输入已保留。请稍后重试，持续失败时联系管理员。" : data.error || "请求未完成，请重试。"); error.status = response.status; throw error; }
   return data;
 }
 function inline(text) { return esc(text).replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>").replace(/`([^`\n]+)`/g,"<code>$1</code>"); }
