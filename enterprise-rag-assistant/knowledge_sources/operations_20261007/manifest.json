@@ -1,0 +1,186 @@
+{
+  "version": "2026-10-07",
+  "modules": 20,
+  "cases": 100,
+  "sources": 30,
+  "new_documents": 21,
+  "total_documents": 44,
+  "files": [
+    {
+      "name": "01_business_model_overview.md",
+      "sha256": "d5f332f6132491ae329f08a5435e8c90fb64675bfea30071ac9bfef78f31688d"
+    },
+    {
+      "name": "02_product_selection_sop.md",
+      "sha256": "1d141493b5cfb1f96a3837713a60e17e406eb251708407055f79455147cb1cb5"
+    },
+    {
+      "name": "03_product_page_sop.md",
+      "sha256": "3065a3464f9d400779773fc44d2432a87a05c418fc58e1d8e295c7737910f084"
+    },
+    {
+      "name": "04_facebook_ads_sop.md",
+      "sha256": "e2d3178805b29e6e3cfc94ab5436bb5d16dc0960ebe9bf1d458c406421b3e69b"
+    },
+    {
+      "name": "05_creative_testing_sop.md",
+      "sha256": "e37b025d54be592d687aa07aa789069b3a9ea596e3e5314b5803090b9e3ab2d0"
+    },
+    {
+      "name": "06_video_ad_script_sop.md",
+      "sha256": "69124d198aeea19b1f44c090ebc0c9d1bfdb3400c3fede42e7741e71a1673879"
+    },
+    {
+      "name": "07_comment_and_review_sop.md",
+      "sha256": "c81f96964d78ec5d3b9ba34dc4207f36522b256cc14e64ae5bda5e3637ae4ef0"
+    },
+    {
+      "name": "08_data_diagnosis_sop.md",
+      "sha256": "c6405fbe73ce23929a6a2e5892706fd9f05a46a995f3dc2913ce8438872e7b11"
+    },
+    {
+      "name": "09_scaling_sop.md",
+      "sha256": "e3c92db08240d20dc5ab376006e623066cfd5badd8c1feab1825f0d5e3e4e41b"
+    },
+    {
+      "name": "10_offer_and_pricing_sop.md",
+      "sha256": "e771ec5e4e5bea1255763a7619d2845bb6414bc6d3fb8be2ad3e06877ba86ff6"
+    },
+    {
+      "name": "11_customer_service_faq_sop.md",
+      "sha256": "25964528489dabd23b139abd0c914e145001247c77f94faa3d3531c054ab8a55"
+    },
+    {
+      "name": "12_weekly_review_sop.md",
+      "sha256": "ddf709ed35017ff7848de943cc7b754fcbed312a47bfe555846b467a14ce838e"
+    },
+    {
+      "name": "13_ai_workflow_sop.md",
+      "sha256": "2abd472f8b717c1d7ba72f5698db4311bb9b8778ef7b9bf4ae7eb389deca91ab"
+    },
+    {
+      "name": "14_risk_and_compliance_sop.md",
+      "sha256": "48a36e6a6e53a1b460e1b02c54e4d08f4dedcad17bc4291c408c3c78c587a76d"
+    },
+    {
+      "name": "15_operator_decision_tree.md",
+      "sha256": "5b10695cff4a8c2b3c457d4e165fde0878e5bcfe9d167437a0e3a285e9ae14e8"
+    },
+    {
+      "name": "ads__kb_amazon.md",
+      "sha256": "514693bb6d2720208fe6f486b5b0cbcb741c357d38a052aea69b01429a886d56"
+    },
+    {
+      "name": "ads__kb_applovin.md",
+      "sha256": "9110a59cf457364fabb0ac9c9aca5a866b5d122a621a0880051296f1fd1a6be9"
+    },
+    {
+      "name": "ads__kb_google.md",
+      "sha256": "71830aaa22a5dce4d9a63441e90546a9d5bc4a1082f926d278788691335e6a66"
+    },
+    {
+      "name": "ads__kb_meta.md",
+      "sha256": "babcb3a154381957c406a9a127a277075df5496cc699a56ec73236ab15d7d454"
+    },
+    {
+      "name": "ads__kb_scaling.md",
+      "sha256": "ad2936823559535e8d7f96bb39ac94548abddee97bc27b19018a1bce75a5e749"
+    },
+    {
+      "name": "ads__kb_tiktok.md",
+      "sha256": "9804477fcefec3c4df8c1ccb03314254d7df8a229b26dead51e315a6ef9bb760"
+    },
+    {
+      "name": "comment_faq.md",
+      "sha256": "8c6babf2dd91e780ce92c265aa9299532641a498830ec3b54f754a729baaa435"
+    },
+    {
+      "name": "company_role_play.md",
+      "sha256": "7cf0f6000e4c296e2253b25caf75ef11cd9cf091f5adbc8a7b893a10a5f399b4"
+    },
+    {
+      "name": "creative__kb_ai_workflow.md",
+      "sha256": "663cd4070c989b0764c592e138788616352e4d17858008fe7675c160f5b48e41"
+    },
+    {
+      "name": "creative__kb_creative.md",
+      "sha256": "e4595f13347264ed232c0840376a5ccf167a394e789634046cdc3cf88f1b2b90"
+    },
+    {
+      "name": "creative_production_sop.md",
+      "sha256": "b1e28251177a9aee0f40734a69f1533a47dc96feb8ac64cebe1c9224df345196"
+    },
+    {
+      "name": "customer__kb_crm.md",
+      "sha256": "e44a1fd9efa64d9e6da8c711349701b6739005b48a03b43d31a88bedd57e7d0a"
+    },
+    {
+      "name": "customer__kb_support.md",
+      "sha256": "c409e29405e64beb141fe649082ffdce6244f201a037ceac96cebe8163690c1e"
+    },
+    {
+      "name": "customer_service_faq_lamp.md",
+      "sha256": "b9f398244820523f2adedb268e14f6634f1cbe57a868f51521265331b8157715"
+    },
+    {
+      "name": "data__kb_attribution.md",
+      "sha256": "3fc53e5c79b66349357ddd11662829bc01f534e95ef60efc851741df5c07583e"
+    },
+    {
+      "name": "data__kb_tracking.md",
+      "sha256": "66c92ed56a902b386d3d7decab6b970507233b57e3baa42909a7186050e54302"
+    },
+    {
+      "name": "facebook_ads_sop.md",
+      "sha256": "b399b9c8643ea87bad69a9ee040c27f6620eb556f62ce0e5812408a620f027cb"
+    },
+    {
+      "name": "finance__kb_economics.md",
+      "sha256": "e0802653e0ac4f185024dec32d7401efab5e60ac2fb2db77caee06b3aeaa0387"
+    },
+    {
+      "name": "general__kb_strategy.md",
+      "sha256": "c761645188c0edac8926ab9741b1823e15a9f8e7b0df92052d1ba4d73e41b65f"
+    },
+    {
+      "name": "general__kb_verified_sources.md",
+      "sha256": "0eff900d4c4f506b2f234cecde54361bef556e7b493ab60940a6b6f8b993428c"
+    },
+    {
+      "name": "product__kb_selection.md",
+      "sha256": "ea9187126a6f1161756de213608adcac372158abb1db269dc0980263e3ec21d0"
+    },
+    {
+      "name": "product_projector_lamp.md",
+      "sha256": "0bca458b611863d9fd10b8d582ecbeb780da814967d4095dfd8fe1c18a180520"
+    },
+    {
+      "name": "product_water_gun.md",
+      "sha256": "de9440f181ffd13c25decb33d8bbf4d4bd5e1dbd9097183bd2173b6faf00a399"
+    },
+    {
+      "name": "review__kb_planning.md",
+      "sha256": "402449240eae895b2ec4e0fef85c50ef20ae795d2a176b9f33380bc8de3e952b"
+    },
+    {
+      "name": "risk__kb_compliance.md",
+      "sha256": "441812963b4c07dab042e2b4c8af6777d83a8681d791f834a0fb5b9ae1c3f71d"
+    },
+    {
+      "name": "store__kb_landing.md",
+      "sha256": "5b992363d949019c260fe39c380dfbc892991af9c4ca6610097c1817e2f79137"
+    },
+    {
+      "name": "store__kb_offers.md",
+      "sha256": "5542de793f4bfc991a5bcbcb68506eea7b735cd93ae01500ce12edf1372237cd"
+    },
+    {
+      "name": "supply__kb_fulfillment.md",
+      "sha256": "dd609a1624f0cc0a0a48316bb550666ed601e4a5fee7331749fe30a75e0a7df2"
+    },
+    {
+      "name": "weekly_review_case.md",
+      "sha256": "654ccb0741c7ea3724008c23fb4bbcebd4afe801fc5e57baa7e3486299db6f89"
+    }
+  ]
+}
