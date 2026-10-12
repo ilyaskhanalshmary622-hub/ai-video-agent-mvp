@@ -5,6 +5,13 @@ when output has missing evidence, unsupported numbers, or known invalid rules.
 """
 import json
 import re
+from decimal import Decimal
+
+
+def numeric_values(text):
+    # Normalize formatting but preserve signs: 35 == 35.00, -15 != +15.
+    return {Decimal(n.replace("−", "-").replace("－", "-"))
+            for n in re.findall(r"[-−－+]?\d+(?:\.\d+)?", text)}
 
 CONTRACT = '''
 只输出一个 JSON 对象，不要 Markdown 代码围栏：
@@ -63,8 +70,8 @@ def validate_answer(raw, matches, query=""):
             support = " ".join(quotes)
             # Numerical claims must occur in their cited quotes. New calculations
             # require an explicit calculator integration, not unverified free text.
-            numbers = set(re.findall(r"\d+(?:\.\d+)?", text))
-            if not numbers <= set(re.findall(r"\d+(?:\.\d+)?", support)):
+            numbers = numeric_values(text)
+            if not numbers <= numeric_values(support):
                 raise ValueError("unsupported_number")
             if re.search(r"1\s*[÷/]\s*[（(]\s*1\s*[-−－]\s*毛利率", text):
                 raise ValueError("invalid_roas_formula")
