@@ -34,6 +34,19 @@ def normalize(value):
     return re.sub(r"\s+", "", value)
 
 
+def evidence_sentences(body):
+    """Exclude bibliographies/metadata; keep complete sentences including negation."""
+    for line in body.splitlines():
+        line = line.strip()
+        if not line or line.startswith('#') or re.match(r'^(?:参考依据|来源|核对日期|版本|知识编号|整理日期|核验状态|访问范围|依据类型)：', line):
+            continue
+        if re.fullmatch(r'\[[^\]]+\](?:\(https?://[^)]+\))?', line):
+            continue
+        for sentence in re.findall(r'[^。！？!?]+[。！？!?]?', line):
+            if len(normalize(sentence)) >= 8:
+                yield sentence.strip()
+
+
 def fallback(matches, reason):
     excerpts = []
     for number, match in enumerate(matches[:3], 1):
@@ -63,9 +76,12 @@ def validate_answer(raw, matches, query=""):
                 if type(number) is not int or not 1 <= number <= len(matches) or not isinstance(quote, str):
                     raise ValueError("invalid_citation")
                 body = matches[number-1].get("body", matches[number-1]["text"])
-                if len(normalize(quote)) < 8 or normalize(quote) not in normalize(body):
+                enclosing = [s for s in evidence_sentences(body) if normalize(quote) in normalize(s)]
+                if len(normalize(quote)) < 8 or not enclosing:
                     raise ValueError("quote_not_in_source")
-                quotes.append(quote)
+                # Never display model paraphrases as verified statements. Expand
+                # fragments to full original sentences to retain scope and negation.
+                quotes.append(enclosing[0])
                 refs.append(number)
             support = " ".join(quotes)
             # Numerical claims must occur in their cited quotes. New calculations
@@ -79,11 +95,11 @@ def validate_answer(raw, matches, query=""):
                 raise ValueError("invalid_attribution_constraint")
             if re.search(r"https?://|\[\d+\]", text):
                 raise ValueError("uncontrolled_citation")
-            rendered.append(text + " " + "".join(f"[{n}]" for n in dict.fromkeys(refs)))
+            rendered.append(" ".join(dict.fromkeys(quotes)) + " " + "".join(f"[{n}]" for n in dict.fromkeys(refs)))
             records.append({"claim": text, "evidence": evidence})
         prefix = "部分问题缺少资料，以下仅回答有依据的部分。\n\n" if obj["insufficient"] else ""
         return prefix + "\n\n".join(f"{i}. {line}" for i, line in enumerate(rendered, 1)), {
-            "status": "quotes_checked", "claims": records,
-            "warning": "引用原文已核对；这不等于结论语义已通过独立审核，执行前请核对适用条件。"}
+            "status": "evidence_extracts", "claims": records,
+            "warning": "以下展示选中的完整资料原句，模型改写不作为已核验结论；相关性与适用条件仍需核对。"}
     except (ValueError, TypeError, KeyError, IndexError):
         return fallback(matches, "evidence_contract_failed")
