@@ -68,8 +68,8 @@ function sourceLinks(text) {
   return urls.map(url=>{try{const parsed=new URL(url);return '<a class="source-link" href="'+esc(parsed.href)+'" target="_blank" rel="noopener noreferrer">查看来源 · '+esc(parsed.hostname)+' ↗</a>';}catch{return "";}}).join("");
 }
 function renderSources(items) { $("#sources").innerHTML = items.length ? items.map((item,i)=>'<details id="source-'+(i+1)+'" class="source-card"><summary>'+String(i+1).padStart(2,"0")+" · "+esc(item.source)+'<em>'+esc(item.category||"通用资料")+'</em></summary><p>'+esc(String(item.text||"").replace(/\[([^\]]+)\]\(https:\/\/[^)\s]+\)/g,"$1"))+'</p>'+sourceLinks(item.text)+'</details>').join("") : '<p class="empty-copy">没有检索到匹配资料。可补充产品名称或更具体的业务关键词。</p>'; }
-function setResultActions(enabled) { $("#copy-answer").disabled=!enabled; $("#export-answer").disabled=!enabled; }
-function showRecord(record) { current=record; renderAnswer(record.answer); renderSources(record.sources||[]); $("#answer-status").textContent="已完成"; $("#retrieval-status").textContent="引用 "+(record.sources||[]).length+" 个片段";setResultActions(true); if(record.retrieval){$("#retrieval-status").textContent=record.retrieval.mode; if(record.retrieval.warning)$("#form-message").textContent=record.retrieval.warning;} }
+function setResultActions(enabled) { $("#feedback-panel").hidden=!enabled; $("#copy-answer").disabled=!enabled; $("#export-answer").disabled=!enabled; }
+function showRecord(record) { current=record; loadFeedback(record.id); renderAnswer(record.answer); renderSources(record.sources||[]); $("#answer-status").textContent="已完成"; $("#retrieval-status").textContent="引用 "+(record.sources||[]).length+" 个片段";setResultActions(true); if(record.retrieval){$("#retrieval-status").textContent=record.retrieval.mode; if(record.retrieval.warning)$("#form-message").textContent=record.retrieval.warning;} }
 function setBusy(value) { $("#ask").disabled=value; $("#cancel").hidden=!value; $("#ask").textContent=value?"正在生成…":"生成建议 ↗"; $("#answer").setAttribute("aria-busy",String(value)); }
 function pausePoll(ms, signal) {
   return new Promise((resolve,reject) => {
@@ -167,4 +167,44 @@ $("#download-knowledge").onclick=async()=>{
     const url=URL.createObjectURL(await response.blob());
     const a=document.createElement("a");a.href=url;a.download="知序知识库-20261012.zip";a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);
   }catch(error){notify(error.message);}finally{button.disabled=false;}
+};
+
+
+// One shared feedback entry per answer; drafts remain local until explicitly saved.
+let feedbackLoadVersion = 0;
+async function loadFeedback(id) {
+  const version = ++feedbackLoadVersion;
+  const draft = readStore("ragFeedbackDraft:" + id, null);
+  $("#feedback-note").value = typeof draft === "string" ? draft : "";
+  $("#save-feedback").disabled = true;
+  $("#feedback-status").textContent = "正在读取反馈…";
+  try {
+    const data = await api("/api/feedback/" + encodeURIComponent(id));
+    if (version !== feedbackLoadVersion || current?.id !== id) return;
+    if (draft === null && $("#feedback-note").value === "") $("#feedback-note").value = data.feedback?.note || "";
+    $("#feedback-status").textContent = data.feedback ? "已保存 · 待改进，可修改后再次保存。" : "尚未提交反馈。";
+  } catch (error) {
+    if (version === feedbackLoadVersion && current?.id === id) $("#feedback-status").textContent = "读取失败：" + error.message;
+  } finally {
+    if (version === feedbackLoadVersion && current?.id === id) $("#save-feedback").disabled = false;
+  }
+}
+$("#feedback-note").oninput = () => {
+  if (current) saveStore("ragFeedbackDraft:" + current.id, $("#feedback-note").value);
+};
+$("#save-feedback").onclick = async () => {
+  if (!current) return;
+  const id = current.id, note = $("#feedback-note").value.trim();
+  if (!note) { $("#feedback-status").textContent = "请先说明哪里没有解决。"; $("#feedback-note").focus(); return; }
+  $("#save-feedback").disabled = true;
+  $("#feedback-status").textContent = "正在保存…";
+  try {
+    await api("/api/feedback", {method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({recordId:id,note})});
+    saveStore("ragFeedbackDraft:" + id, null);
+    if (current?.id === id) $("#feedback-status").textContent = "已保存 · 待改进。重复保存会更新此条反馈，不会新增工单。";
+  } catch (error) {
+    if (current?.id === id) $("#feedback-status").textContent = "保存未确认，输入已保留，可重试：" + error.message;
+  } finally {
+    if (current?.id === id) $("#save-feedback").disabled = false;
+  }
 };

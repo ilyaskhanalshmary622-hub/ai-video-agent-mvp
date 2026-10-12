@@ -195,7 +195,7 @@ def knowledge_overview():
     return {
         "files": files,
         "knowledgeRelease": RELEASE,
-        "applicationRelease": "2026-10-12.5",
+        "applicationRelease": "2026-10-12.6",
         "archivedCount": sum(d.get("status") == "superseded" for d in registry.get("documents", {}).values()),
         "archivedFiles": [{"name": name, "title": d.get("title", name), "replacedBy": d.get("replacedBy", [])}
                           for name, d in registry.get("documents", {}).items() if d.get("status") == "superseded"],
@@ -383,6 +383,12 @@ class RagHandler(SimpleHTTPRequestHandler):
 
     def handle_get(self):
         route = urlsplit(self.path).path
+        if route.startswith("/api/feedback/"):
+            if not check_password(self.headers):
+                self.send_json(401, {"error": "需要访问密码"})
+                return
+            self.send_json(200, {"feedback": STORE.get("feedback", route.rsplit("/", 1)[-1])})
+            return
         if route == "/api/history":
             if not check_password(self.headers):
                 self.send_json(401, {"error": "需要访问密码"})
@@ -430,7 +436,7 @@ class RagHandler(SimpleHTTPRequestHandler):
             self.create_task()
             return
 
-        if self.path in ("/api/search", "/api/import", "/api/index", "/api/history/import"):
+        if self.path in ("/api/search", "/api/import", "/api/index", "/api/history/import", "/api/feedback"):
             self.handle_workspace_action()
             return
 
@@ -551,7 +557,20 @@ class RagHandler(SimpleHTTPRequestHandler):
             body = json.loads(self.rfile.read(length))
             if not isinstance(body, dict):
                 raise ValueError("请求格式不正确。")
-            if self.path == "/api/search":
+            if self.path == "/api/feedback":
+                record_id = body.get("recordId")
+                note = body.get("note")
+                if not isinstance(record_id, str) or not 1 <= len(record_id) <= 100:
+                    raise ValueError("请选择有效的问答记录。")
+                if not isinstance(note, str) or not 1 <= len(note.strip()) <= 2000:
+                    raise ValueError("请填写 1 至 2000 字的问题说明。")
+                if not STORE.get("history", record_id):
+                    self.send_json(404, {"error": "问答尚未保存到服务器，请先同步历史记录。"})
+                    return
+                feedback = {"recordId": record_id, "note": note.strip(), "status": "pending", "updatedAt": time.time()*1000}
+                STORE.put("feedback", record_id, feedback)
+                self.send_json(200, {"feedback": feedback})
+            elif self.path == "/api/search":
                 query = str(body.get("query", "")).strip()
                 if not query or len(query) > 12000:
                     raise ValueError("请输入 1 至 12000 字的问题。")
