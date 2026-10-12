@@ -195,7 +195,7 @@ def knowledge_overview():
     return {
         "files": files,
         "knowledgeRelease": RELEASE,
-        "applicationRelease": "2026-10-12.3",
+        "applicationRelease": "2026-10-12.4",
         "archivedCount": sum(d.get("status") == "superseded" for d in registry.get("documents", {}).values()),
         "archivedFiles": [{"name": name, "title": d.get("title", name), "replacedBy": d.get("replacedBy", [])}
                           for name, d in registry.get("documents", {}).items() if d.get("status") == "superseded"],

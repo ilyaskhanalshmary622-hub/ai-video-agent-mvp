@@ -49,12 +49,58 @@ def evidence_sentences(body):
 
 def fallback(matches, reason):
     excerpts = []
-    for number, match in enumerate(matches[:3], 1):
+    for number, match in enumerate(matches[:1], 1):
         body = match.get("body", match["text"])
-        excerpts.append(f"### 资料原文 [{number}]\n{body[:1100]}")
-    answer = "## 暂不能给出可靠的完整建议\n本次生成未通过依据检查，以下仅展示检索原文，请结合适用条件核对。\n\n" + "\n\n".join(excerpts)
+        sentences = list(dict.fromkeys(evidence_sentences(body)))
+        selected, length = [], 0
+        for sentence in sentences:
+            if length + len(sentence) > 1000:
+                break
+            selected.append(sentence)
+            length += len(sentence)
+            if len(selected) >= 5:
+                break
+        if selected:
+            excerpts.append(f"### 可参考的资料原文 [{number}]\n" + "\n\n".join(selected))
+    answer = "本次未形成完整建议，以下摘录供核对；完整资料可展开引用查看。\n\n" + "\n\n".join(excerpts)
     return answer, {"status": "extractive_fallback", "reason": reason,
                     "warning": "生成内容未通过依据格式检查，已改为原文摘录；摘录相关性仍需核对。"}
+
+
+def validate_item(item, matches):
+    text, evidence = item["text"], item["evidence"]
+    if not isinstance(text, str) or not 1 <= len(text) <= 1200 or not isinstance(evidence, list) or not 1 <= len(evidence) <= 5:
+        raise ValueError("invalid_claim")
+    pairs = []
+    for entry in evidence:
+        number, quote = entry["source"], entry["quote"]
+        if type(number) is not int or not 1 <= number <= len(matches) or not isinstance(quote, str):
+            raise ValueError("invalid_citation")
+        body = matches[number-1].get("body", matches[number-1]["text"])
+        sentences = list(evidence_sentences(body))
+        enclosing = []
+        # A legitimate citation may cover multiple consecutive sentences.
+        for size in range(1, 4):
+            for start in range(len(sentences)):
+                group = sentences[start:start+size]
+                if normalize(quote) in normalize("".join(group)):
+                    enclosing = group
+                    break
+            if enclosing:
+                break
+        if len(normalize(quote)) < 8 or normalize(quote) not in normalize(body) or not enclosing:
+            raise ValueError("quote_not_in_source")
+        pairs.extend((sentence, number) for sentence in enclosing)
+    support = " ".join(s for s, _ in pairs)
+    if not numeric_values(text) <= numeric_values(support):
+        raise ValueError("unsupported_number")
+    if re.search(r"1\s*[÷/]\s*[（(]\s*1\s*[-−－]\s*毛利率", text):
+        raise ValueError("invalid_roas_formula")
+    if re.search(r"归因.*(?:之和|总和|相加|合计).*(?:≤|小于等于|不得超过|不能超过)", text):
+        raise ValueError("invalid_attribution_constraint")
+    if re.search(r"https?://|\[\d+\]", text):
+        raise ValueError("uncontrolled_citation")
+    return pairs
 
 
 def validate_answer(raw, matches, query=""):
@@ -65,41 +111,32 @@ def validate_answer(raw, matches, query=""):
             raise ValueError("invalid_schema")
         if not items:
             return "现有资料不足以回答这个问题。请补充相关业务记录或明确的资料来源。", {"status": "insufficient", "warning": "未找到足够的回答依据。"}
-        rendered, records = [], []
+        merged, records, rejected = {}, [], []
         for item in items:
-            text, evidence = item["text"], item["evidence"]
-            if not isinstance(text, str) or not 1 <= len(text) <= 1200 or not isinstance(evidence, list) or not 1 <= len(evidence) <= 5:
-                raise ValueError("invalid_claim")
-            quotes, refs = [], []
-            for entry in evidence:
-                number, quote = entry["source"], entry["quote"]
-                if type(number) is not int or not 1 <= number <= len(matches) or not isinstance(quote, str):
-                    raise ValueError("invalid_citation")
-                body = matches[number-1].get("body", matches[number-1]["text"])
-                enclosing = [s for s in evidence_sentences(body) if normalize(quote) in normalize(s)]
-                if len(normalize(quote)) < 8 or not enclosing:
-                    raise ValueError("quote_not_in_source")
-                # Never display model paraphrases as verified statements. Expand
-                # fragments to full original sentences to retain scope and negation.
-                quotes.append(enclosing[0])
-                refs.append(number)
-            support = " ".join(quotes)
-            # Numerical claims must occur in their cited quotes. New calculations
-            # require an explicit calculator integration, not unverified free text.
-            numbers = numeric_values(text)
-            if not numbers <= numeric_values(support):
-                raise ValueError("unsupported_number")
-            if re.search(r"1\s*[÷/]\s*[（(]\s*1\s*[-−－]\s*毛利率", text):
-                raise ValueError("invalid_roas_formula")
-            if re.search(r"归因.*(?:之和|总和|相加|合计).*(?:≤|小于等于|不得超过|不能超过)", text):
-                raise ValueError("invalid_attribution_constraint")
-            if re.search(r"https?://|\[\d+\]", text):
-                raise ValueError("uncontrolled_citation")
-            rendered.append(" ".join(dict.fromkeys(quotes)) + " " + "".join(f"[{n}]" for n in dict.fromkeys(refs)))
-            records.append({"claim": text, "evidence": evidence})
-        prefix = "部分问题缺少资料，以下仅回答有依据的部分。\n\n" if obj["insufficient"] else ""
+            try:
+                pairs = validate_item(item, matches)
+            except (ValueError, TypeError, KeyError, IndexError) as exc:
+                rejected.append(str(exc) if isinstance(exc, ValueError) else "invalid_item")
+                continue
+            for sentence, number in pairs:
+                key = normalize(sentence)
+                entry = merged.setdefault(key, {"text": sentence, "refs": []})
+                if number not in entry["refs"]:
+                    entry["refs"].append(number)
+            records.append({"evidence": item["evidence"]})
+        if not merged:
+            return fallback(matches, "all_items_rejected")
+        rendered = [x["text"] + " " + "".join(f"[{n}]" for n in x["refs"]) for x in merged.values()]
+        prefix = "部分内容缺少可核对的依据，以下仅展示保留下来的资料原句。\n\n" if obj["insufficient"] or rejected else ""
+        used = {n for x in merged.values() for n in x["refs"]}
+        for n in sorted(used):
+            match = matches[n-1]
+            if match.get("chunk_id") == "calculation-unit-economics":
+                context = "\n".join(match["text"].splitlines()[:2])
+                prefix += context + f" [{n}]\n\n"
         return prefix + "\n\n".join(f"{i}. {line}" for i, line in enumerate(rendered, 1)), {
-            "status": "evidence_extracts", "claims": records,
+            "status": "partial_evidence" if rejected else "evidence_extracts", "claims": records,
+            "rejectedCount": len(rejected), "rejectionReasons": rejected,
             "warning": "以下展示选中的完整资料原句，模型改写不作为已核验结论；相关性与适用条件仍需核对。"}
     except (ValueError, TypeError, KeyError, IndexError):
         return fallback(matches, "evidence_contract_failed")
