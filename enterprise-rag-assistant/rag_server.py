@@ -10,6 +10,10 @@ import math
 from concurrent.futures import ThreadPoolExecutor
 from threading import Lock
 from uuid import UUID
+from urllib.parse import urlsplit
+from rag_storage import Store
+from rag_retrieval import retrieve, semantic_ready, build_index
+from rag_ingest import convert_upload
 
 TASKS = {}
 TASK_LOCK = Lock()
@@ -17,21 +21,24 @@ TASK_POOL = ThreadPoolExecutor(max_workers=4)
 
 
 def run_task(task_id, body):
-    with TASK_LOCK:
-        TASKS[task_id]["status"] = "running"
     try:
+        with TASK_LOCK:
+            TASKS[task_id]["status"] = "running"
+            STORE.put("tasks", task_id, TASKS[task_id])
         query = body["query"]
         role = str(body.get("role", "运营诊断"))
         history = body.get("history", [])
         history = [item for item in history[-3:] if isinstance(item, dict)] if isinstance(history, list) else []
         chunks = load_documents()
-        matches = search(query, chunks)
+        matches, retrieval = retrieve(query, chunks, STORE)
         answer = call_model(build_prompt(query, matches, role, history)) if matches else "没有检索到相关资料。"
         result = {
-            "answer": answer, "model": DEFAULT_MODEL,
+            "answer": answer, "model": DEFAULT_MODEL, "retrieval": retrieval,
             "sources": [{"source": item["source"], "chunkId": item["chunk_id"],
                          "category": item["category"], "text": item["text"]} for item in matches],
         }
+        record = {"id": task_id, "question": query, "role": role, "createdAt": time.time()*1000, **result}
+        STORE.put("history", task_id, record)
         update = {"status": "completed", "result": result}
     except ModelError as exc:
         update = {"status": "failed", "error": str(exc), "code": exc.code}
@@ -39,6 +46,10 @@ def run_task(task_id, body):
         update = {"status": "failed", "error": "服务处理异常，请稍后重试。", "code": "TASK_ERROR"}
     with TASK_LOCK:
         TASKS[task_id].update(update, finishedAt=time.time())
+        try:
+            STORE.put("tasks", task_id, TASKS[task_id])
+        except Exception:
+            print("Task persistence unavailable; result retained in process memory.")
 
 
 ROOT = Path(__file__).resolve().parent
@@ -61,6 +72,7 @@ CATEGORY_LABELS = {
     "store": "店铺与转化",
     "supply": "库存与履约",
     "risk": "规则与合规",
+    "learning": "RAG与企业落地",
 }
 
 
@@ -80,6 +92,21 @@ def load_local_env():
 
 
 load_local_env()
+STORE = Store()
+# A single server process owns in-flight work. Never silently rebill interrupted tasks.
+for old_task in STORE.list("tasks", 10000):
+    if old_task.get("status") in ("queued", "running"):
+        recovered = STORE.get("history", old_task["id"])
+        if recovered:
+            old_task.update(status="completed", result={k: recovered.get(k) for k in ("answer", "model", "sources", "retrieval")})
+            STORE.put("tasks", old_task["id"], old_task)
+            continue
+        old_task.update(status="failed", code="INTERRUPTED", error="服务已重启，任务执行结果未确认。请检查历史后再决定是否重新生成。", finishedAt=time.time())
+        STORE.put("tasks", old_task["id"], old_task)
+index_state = STORE.get("meta", "index")
+if index_state and index_state.get("status") == "running":
+    index_state.update(status="failed", error="服务重启中断索引，请重新建立；已完成的向量会复用。")
+    STORE.put("meta", "index", index_state)
 
 
 def split_chunks(text):
@@ -99,16 +126,36 @@ def tokenize(text):
     return tokens - {"怎么", "如何", "什么", "一个", "问题", "应该", "是否", "进行", "需要", "可以", "资料"}
 
 
+def document_items():
+    for path in sorted(KNOWLEDGE_DIR.glob("*.md")):
+        yield path.name, path.read_text(encoding="utf-8")
+    for doc in STORE.list("documents", 10000):
+        yield doc["name"], doc["text"]
+
+
+def bounded_chunks(text):
+    from llama_index.core.node_parser import SentenceSplitter
+    # Use a deterministic local tokenizer; no first-request tokenizer downloads.
+    splitter = SentenceSplitter(chunk_size=1800, chunk_overlap=180, tokenizer=lambda value: list(value))
+    for section in split_chunks(text):
+        if len(section) <= 2200:
+            yield section
+        else:
+            yield from splitter.split_text(section)
+
+
 def load_documents():
     chunks = []
-    for path in sorted(KNOWLEDGE_DIR.glob("*.md")):
-        text = path.read_text(encoding="utf-8")
-        category = get_category(path.name)
-        for index, chunk in enumerate(split_chunks(text), start=1):
+    for filename, text in document_items():
+        category = get_category(filename)
+        for index, chunk in enumerate(bounded_chunks(text), start=1):
+            title = text.splitlines()[0] if text else filename
+            provenance = re.findall(r"^(?:版本：|资料日期：|来源：).+$", text, re.M)[:3]
+            chunk = "\n".join([title, *provenance, chunk])
             chunks.append(
                 {
-                    "source": path.name,
-                    "chunk_id": f"{path.stem}-{index}",
+                    "source": filename,
+                    "chunk_id": f"{Path(filename).stem}-{index}",
                     "category": category,
                     "text": chunk,
                     "tokens": tokenize(chunk),
@@ -128,17 +175,16 @@ def knowledge_overview():
     categories = {label: 0 for label in CATEGORY_LABELS.values()}
     total_chunks = 0
     total_chars = 0
-    for path in sorted(KNOWLEDGE_DIR.glob("*.md")):
-        text = path.read_text(encoding="utf-8")
-        chunks = split_chunks(text)
-        category = get_category(path.name)
+    for filename, text in document_items():
+        chunks = list(bounded_chunks(text))
+        category = get_category(filename)
         categories[category] = categories.get(category, 0) + 1
         total_chunks += len(chunks)
         total_chars += len(text)
         files.append(
             {
-                "name": path.name,
-                "title": text.splitlines()[0].lstrip("# ").strip() if text else path.stem,
+                "name": filename,
+                "title": text.splitlines()[0].lstrip("# ").strip() if text else Path(filename).stem,
                 "category": category,
                 "chunks": len(chunks),
                 "chars": len(text),
@@ -146,6 +192,10 @@ def knowledge_overview():
         )
     return {
         "files": files,
+        "storage": STORE.status(),
+        "semanticConfigured": semantic_ready(STORE),
+        "index": STORE.get("meta", "index"),
+        "uploadEnabled": STORE.status()["durable"],
         "fileCount": len(files),
         "chunkCount": total_chunks,
         "charCount": total_chars,
@@ -166,30 +216,13 @@ def check_password(headers):
 
 
 def search(query, chunks, top_k=5):
-    query_tokens = tokenize(query)
-    for aliases in ({"fb", "facebook", "meta", "脸书"}, {"applovin", "axon"}, {"tiktok", "tt"}, {"amazon", "亚马", "马逊"}):
-        if query_tokens & aliases:
-            query_tokens.update(aliases)
-    if not query_tokens or not chunks:
-        return []
-    document_frequency = {token: sum(token in chunk["tokens"] for chunk in chunks) for token in query_tokens}
-    average_length = sum(len(chunk["tokens"]) for chunk in chunks) / len(chunks) or 1
-    scored = []
-    for chunk in chunks:
-        overlap = query_tokens & chunk["tokens"]
-        weights = {token: math.log(1 + (len(chunks) - document_frequency[token] + .5) / (document_frequency[token] + .5)) for token in overlap}
-        score = sum(weights.values()) / (0.7 + 0.3 * len(chunk["tokens"]) / average_length)
-        score += sum(weights[token] for token in overlap & chunk.get("title_tokens", set())) * 1.5
-        if score:
-            scored.append((score, chunk))
-    scored.sort(key=lambda item: item[0], reverse=True)
-    return [chunk for _, chunk in scored[:top_k]]
+    return retrieve(query, chunks, STORE, top_k)[0]
 
 
 def build_prompt(query, matches, role, history):
     context = "\n\n".join(
-        f"[资料来源：{item['source']} / {item['chunk_id']} / {item['category']}]\n{item['text']}"
-        for item in matches
+        f"[{number}] [资料来源：{item['source']} / {item['chunk_id']} / {item['category']}]\n{item['text']}"
+        for number, item in enumerate(matches, 1)
     )
     history_text = "\n".join(
         f"用户：{item.get('question', '')}\n助手：{item.get('answer', '')}"
@@ -206,7 +239,7 @@ def build_prompt(query, matches, role, history):
 平台、国家、品类、统计口径和采集日期必须匹配问题；过时或冲突规则要明确说明。
 没有通用的CTR、频次、ROAS或预算增幅阈值。利润判断先统一成本、收入、币种和归因口径。
 需要补充信息时一次只问一个关键问题并给简短编号选项；已有信息足够则直接排查。
-用条目编号或文件名标记依据，引用资料中的官方链接可放在答案末尾，不得编造来源链接。
+在关键结论后用 [1]、[2] 这样的资料序号标记依据，不得引用未提供的编号；用条目编号或文件名标记依据，引用资料中的官方链接可放在答案末尾，不得编造来源链接。
 素材工作流默认image2生图、seendans2.0生视频；解释用中文，成片语言跟随目标市场。
 
 输出模式说明：
@@ -215,6 +248,8 @@ def build_prompt(query, matches, role, history):
 如果是“落地页优化”，重点给首屏、信任证明、价格、CTA 和承接问题。
 如果是“客服回复”，重点给可直接复制的话术和风险边界。
 如果是“老板汇报”，重点给结论、原因、风险和资源需求。
+如果是“RAG学习”，用业务例子解释概念、流程和练习步骤。
+如果是“企业流程设计”，列出输入、输出、系统接口、权限、异常分支、人工审批和验收指标。
 
 用户问题：
 {query}
@@ -330,13 +365,30 @@ class RagHandler(SimpleHTTPRequestHandler):
         super().__init__(*args, directory=str(ROOT), **kwargs)
 
     def do_GET(self):
+        try:
+            self.handle_get()
+        except Exception:
+            self.send_json(503, {"error": "资料或数据库暂时不可用，请稍后重试。"})
+
+    def do_HEAD(self):
+        # Never expose metadata for private files through inherited HEAD handling.
+        self.send_error(405)
+
+    def handle_get(self):
+        route = urlsplit(self.path).path
+        if route == "/api/history":
+            if not check_password(self.headers):
+                self.send_json(401, {"error": "需要访问密码"})
+                return
+            self.send_json(200, {"records": STORE.list("history", 1000), "storage": STORE.status()})
+            return
         if self.path.startswith("/api/tasks/"):
             if not check_password(self.headers):
                 self.send_json(401, {"error": "需要访问密码"})
                 return
             task_id = self.path.rsplit("/", 1)[-1]
             with TASK_LOCK:
-                task = TASKS.get(task_id)
+                task = TASKS.get(task_id) or STORE.get("tasks", task_id)
                 payload = dict(task) if task else None
             self.send_json(200 if payload else 404, payload or {
                 "code": "TASK_MISSING",
@@ -349,6 +401,13 @@ class RagHandler(SimpleHTTPRequestHandler):
                 return
             self.send_json(200, knowledge_overview())
             return
+        # Only public UI assets are served. Python, env, databases and raw knowledge stay private.
+        allowed = {"/", "/rag_ui.html", "/rag_ui.css", "/rag_ui.js", "/learning.html", "/downloads/cross-border-operations-knowledge-20261007.zip"}
+        if route not in allowed:
+            self.send_error(404)
+            return
+        if route == "/":
+            self.path = "/rag_ui.html"
         super().do_GET()
 
     def do_POST(self):
@@ -358,6 +417,10 @@ class RagHandler(SimpleHTTPRequestHandler):
 
         if self.path == "/api/tasks":
             self.create_task()
+            return
+
+        if self.path in ("/api/search", "/api/import", "/api/index", "/api/history/import"):
+            self.handle_workspace_action()
             return
 
         if self.path == "/api/upload":
@@ -373,6 +436,8 @@ class RagHandler(SimpleHTTPRequestHandler):
 
         try:
             length = int(self.headers.get("Content-Length", "0"))
+            if not 0 < length <= 100000:
+                raise ValueError("请求过大")
             body = json.loads(self.rfile.read(length).decode("utf-8"))
             query = str(body.get("query", "")).strip()
             role = str(body.get("role", "运营诊断")).strip()
@@ -415,8 +480,8 @@ class RagHandler(SimpleHTTPRequestHandler):
             )
         except ModelError as exc:
             self.send_json(exc.status, {"error": str(exc), "code": exc.code})
-        except Exception as exc:  # noqa: BLE001
-            self.send_json(500, {"error": str(exc)})
+        except Exception:
+            self.send_json(503, {"error": "服务暂时不可用，请稍后重试。"})
 
     def create_task(self):
         try:
@@ -436,77 +501,97 @@ class RagHandler(SimpleHTTPRequestHandler):
                            if task.get("finishedAt", float("inf")) < time.time() - 3600]
                 for key in expired:
                     del TASKS[key]
-                if task_id in TASKS:
-                    payload = dict(TASKS[task_id])
+                existing = TASKS.get(task_id) or STORE.get("tasks", task_id)
+                if existing:
+                    payload = dict(existing)
                 elif len(TASKS) >= 128 or sum(t["status"] in ("queued", "running") for t in TASKS.values()) >= 16:
                     payload = None
                 else:
                     TASKS[task_id] = {"id": task_id, "status": "queued", "createdAt": time.time()}
                     payload = dict(TASKS[task_id])
+                    try:
+                        STORE.put("tasks", task_id, payload)
+                    except Exception:
+                        del TASKS[task_id]
+                        raise
                     TASK_POOL.submit(run_task, task_id, body)
             self.send_json(202 if payload else 429, payload or {"error": "当前任务较多，请稍后再试。"})
         except (ValueError, KeyError, TypeError):
             self.send_json(400, {"error": "请求格式不正确，请刷新页面后重试。"})
+        except Exception:
+            self.send_json(503, {"error": "任务暂时无法保存，请稍后重试。"})
 
     def handle_upload(self):
+        self.send_json(410, {"error": "请使用知识库页面的新导入入口。"})
+
+    def handle_workspace_action(self):
         try:
-            import cgi
-
-            form = cgi.FieldStorage(
-                fp=self.rfile,
-                headers=self.headers,
-                environ={
-                    "REQUEST_METHOD": "POST",
-                    "CONTENT_TYPE": self.headers.get("Content-Type", ""),
-                },
-            )
-            category = str(form.getfirst("category", "general")).strip()
-            if category not in CATEGORY_LABELS:
-                category = "general"
-
-            title = str(form.getfirst("title", "")).strip()
-            pasted_text = str(form.getfirst("text", "")).strip()
-            file_item = form["file"] if "file" in form else None
-
-            filename = title or "uploaded_knowledge"
-            content = pasted_text
-            if file_item is not None and getattr(file_item, "filename", ""):
-                filename = Path(file_item.filename).stem
-                raw = file_item.file.read()
-                content = raw.decode("utf-8", errors="replace").strip()
-
-            if not content:
-                self.send_json(400, {"error": "请上传文件或粘贴资料内容"})
-                return
-
-            safe_name = re.sub(r"[^A-Za-z0-9\u4e00-\u9fff_-]+", "_", filename).strip("_")
-            safe_name = safe_name or f"knowledge_{int(time.time())}"
-            target = KNOWLEDGE_DIR / f"{category}__{safe_name}.md"
-            suffix = 1
-            while target.exists():
-                target = KNOWLEDGE_DIR / f"{category}__{safe_name}_{suffix}.md"
-                suffix += 1
-
-            if not content.lstrip().startswith("#"):
-                content = f"# {title or safe_name}\n\n{content}"
-            target.write_text(content, encoding="utf-8")
-
-            self.send_json(
-                200,
-                {
-                    "message": "上传成功",
-                    "file": target.name,
-                    "category": CATEGORY_LABELS[category],
-                    "overview": knowledge_overview(),
-                },
-            )
-        except Exception as exc:  # noqa: BLE001
-            self.send_json(500, {"error": str(exc)})
+            length = int(self.headers.get("Content-Length", "0"))
+            limit = 12 * 1024 * 1024 if self.path in ("/api/import", "/api/history/import") else 100000
+            if not 0 < length <= limit:
+                raise ValueError("请求为空或过大。")
+            body = json.loads(self.rfile.read(length))
+            if not isinstance(body, dict):
+                raise ValueError("请求格式不正确。")
+            if self.path == "/api/search":
+                query = str(body.get("query", "")).strip()
+                if not query or len(query) > 12000:
+                    raise ValueError("请输入 1 至 12000 字的问题。")
+                chunks = load_documents()
+                category = str(body.get("category", ""))
+                if category:
+                    chunks = [c for c in chunks if c["category"] == category]
+                matches, info = retrieve(query, chunks, STORE)
+                self.send_json(200, {"retrieval": info, "sources": [{"source": c["source"], "chunkId": c["chunk_id"], "category": c["category"], "text": c["text"], "score": c["retrieval_score"]} for c in matches]})
+            elif self.path == "/api/import":
+                if not STORE.status()["durable"]:
+                    self.send_json(409, {"error": "请先配置持久数据库，避免上传资料在重新部署后丢失。"})
+                    return
+                doc = convert_upload(body)
+                existing = STORE.get("documents", doc["id"])
+                if not existing:
+                    STORE.put("documents", doc["id"], doc)
+                self.send_json(200, {"message": "相同文件已存在，未重复导入。" if existing else "资料已保存，可立即关键词检索；语义检索需更新索引。", "file": (existing or doc)["name"]})
+            elif self.path == "/api/index":
+                if not semantic_ready(STORE):
+                    raise ValueError("请先配置 PostgreSQL、pgvector 和 Embedding 接口。")
+                with TASK_LOCK:
+                    state = STORE.get("meta", "index") or {}
+                    if state.get("status") != "running":
+                        chunks = load_documents()
+                        STORE.put("meta", "index", {"status": "running", "done": 0, "total": len(chunks)})
+                        TASK_POOL.submit(build_index, STORE, chunks)
+                self.send_json(202, {"message": "索引建立中，可在知识库页刷新查看进度。"})
+            else:
+                records = body.get("records")
+                if not isinstance(records, list) or len(records) > 100:
+                    raise ValueError("一次最多导入 100 条历史问答。")
+                valid = []
+                for record in records:
+                    if not isinstance(record, dict) or not isinstance(record.get("id"), str):
+                        raise ValueError("历史记录格式不正确。")
+                    if len(record["id"]) > 100 or not isinstance(record.get("question"), str) or not isinstance(record.get("answer"), str):
+                        raise ValueError("历史记录格式不正确。")
+                    if len(record["question"]) > 12000 or len(record["answer"]) > 100000:
+                        raise ValueError("历史记录过长。")
+                    sources = record.get("sources", [])
+                    if not isinstance(sources, list) or len(sources) > 20 or any(not isinstance(x, dict) or not isinstance(x.get("text"), str) for x in sources):
+                        raise ValueError("历史引用格式不正确。")
+                    valid.append({k: record.get(k) for k in ("id", "question", "answer", "role", "createdAt", "sources")})
+                for record in valid:
+                    if not STORE.get("history", record["id"]):
+                        STORE.put("history", record["id"], record)
+                self.send_json(200, {"message": "历史记录已保存到共享工作空间。"})
+        except (ValueError, UnicodeError, TypeError):
+            self.send_json(400, {"error": "内容无法处理，请检查格式、大小或服务配置。"})
+        except Exception:
+            self.send_json(503, {"error": "暂时无法处理。请检查数据库、文档解析依赖和模型接口配置。"})
 
     def send_json(self, status, payload):
         raw = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
         self.send_header("Content-Type", "application/json; charset=utf-8")
+        self.send_header("Cache-Control", "no-store")
         self.send_header("Content-Length", str(len(raw)))
         self.end_headers()
         self.wfile.write(raw)

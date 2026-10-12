@@ -47,7 +47,7 @@ async function api(path, options = {}) {
   if (!response.ok) { const error = new Error(response.status === 401 ? "访问密码未通过验证，请重新输入。" : data.code ? data.error : response.status >= 500 ? "服务暂时无法完成请求，输入已保留。请稍后重试，持续失败时联系管理员。" : data.error || "请求未完成，请重试。"); error.status = response.status; throw error; }
   return data;
 }
-function inline(text) { return esc(text).replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>").replace(/`([^`\n]+)`/g,"<code>$1</code>"); }
+function inline(text) { return esc(text).replace(/\*\*([^*\n]+)\*\*/g,"<strong>$1</strong>").replace(/`([^`\n]+)`/g,"<code>$1</code>").replace(/\[(\d{1,2})\]/g,'<button class="text-button" data-citation="$1" aria-label="查看引用 $1">[$1]</button>'); }
 function renderAnswer(text) {
   let out="", list="", code=false, codeLines=[];
   const endList=()=>{ if(list){out+="</"+list+">";list="";} };
@@ -66,9 +66,9 @@ function sourceLinks(text) {
   const urls=[...new Set(String(text).match(/https:\/\/[^\s)<>]+/g)||[])];
   return urls.map(url=>{try{const parsed=new URL(url);return '<a class="source-link" href="'+esc(parsed.href)+'" target="_blank" rel="noopener noreferrer">查看来源 · '+esc(parsed.hostname)+' ↗</a>';}catch{return "";}}).join("");
 }
-function renderSources(items) { $("#sources").innerHTML = items.length ? items.map((item,i)=>'<details class="source-card"><summary>'+String(i+1).padStart(2,"0")+" · "+esc(item.source)+'<em>'+esc(item.category||"通用资料")+'</em></summary><p>'+esc(String(item.text||"").replace(/\[([^\]]+)\]\(https:\/\/[^)\s]+\)/g,"$1"))+'</p>'+sourceLinks(item.text)+'</details>').join("") : '<p class="empty-copy">没有检索到匹配资料。可补充产品名称或更具体的业务关键词。</p>'; }
+function renderSources(items) { $("#sources").innerHTML = items.length ? items.map((item,i)=>'<details id="source-'+(i+1)+'" class="source-card"><summary>'+String(i+1).padStart(2,"0")+" · "+esc(item.source)+'<em>'+esc(item.category||"通用资料")+'</em></summary><p>'+esc(String(item.text||"").replace(/\[([^\]]+)\]\(https:\/\/[^)\s]+\)/g,"$1"))+'</p>'+sourceLinks(item.text)+'</details>').join("") : '<p class="empty-copy">没有检索到匹配资料。可补充产品名称或更具体的业务关键词。</p>'; }
 function setResultActions(enabled) { $("#copy-answer").disabled=!enabled; $("#export-answer").disabled=!enabled; }
-function showRecord(record) { current=record; renderAnswer(record.answer); renderSources(record.sources||[]); $("#answer-status").textContent="已完成"; $("#retrieval-status").textContent="引用 "+(record.sources||[]).length+" 个片段";setResultActions(true); }
+function showRecord(record) { current=record; renderAnswer(record.answer); renderSources(record.sources||[]); $("#answer-status").textContent="已完成"; $("#retrieval-status").textContent="引用 "+(record.sources||[]).length+" 个片段";setResultActions(true); if(record.retrieval){$("#retrieval-status").textContent=record.retrieval.mode; if(record.retrieval.warning)$("#form-message").textContent=record.retrieval.warning;} }
 function setBusy(value) { $("#ask").disabled=value; $("#cancel").hidden=!value; $("#ask").textContent=value?"正在生成…":"生成建议 ↗"; $("#answer").setAttribute("aria-busy",String(value)); }
 function pausePoll(ms, signal) {
   return new Promise((resolve,reject) => {
@@ -105,8 +105,8 @@ async function generateAnswer(pending=null) {
   try {
     const data=await waitForTask(task,requestController.signal);
     if(!data || typeof data.answer!=="string")throw new Error("服务没有返回回答，请重试。");
-    const record={id:task.id,question,answer:data.answer,role:selectedRole,sources:Array.isArray(data.sources)?data.sources:[],createdAt:Date.now()};
-    showRecord(record);$("#form-message").textContent=""; history=[record,...history.filter(x=>x.id!==record.id)].slice(0,100);saveStore("ragHistoryV2",history);renderHistory();memory.push({question,answer:record.answer.slice(0,800)});memory=memory.slice(-6);saveStore("ragConversationMemory",memory);
+    const record={id:task.id,question,answer:data.answer,role:selectedRole,sources:Array.isArray(data.sources)?data.sources:[],createdAt:Date.now(),retrieval:data.retrieval};
+    showRecord(record);$("#form-message").textContent=data.retrieval?.warning||""; history=[record,...history.filter(x=>x.id!==record.id)].slice(0,100);saveStore("ragHistoryV2",history);renderHistory();memory.push({question,answer:record.answer.slice(0,800)});memory=memory.slice(-6);saveStore("ragConversationMemory",memory);
   } catch(error) {
     const text=error.name==="AbortError"?(timedOut?"暂时停止等待，任务编号已保留。点击生成按钮可继续查询原任务。":"已停止页面等待，后台任务继续执行。点击生成按钮可恢复查询。"):error.message;
     $("#answer-status").textContent=error.name==="AbortError"?"等待已结束":"请求未完成";$("#form-message").textContent=text;$("#answer").innerHTML='<div class="empty-state"><span>↻</span><h3>输入和任务状态已保留</h3><p>'+esc(text)+'</p></div>';$("#sources").innerHTML='<p class="empty-copy">本次没有取得资料来源。</p>';$("#retrieval-status").textContent="未取得结果";
@@ -122,6 +122,37 @@ $("#history-search").oninput=renderHistory;$("#history-list").onclick=e=>{const 
 $("#export-history").onclick=()=>download("知序-问答备份.json",JSON.stringify({version:1,records:history},null,2),"application/json");
 $("#import-history").onclick=()=>$("#history-file").click();$("#history-file").onchange=async e=>{const file=e.target.files[0];if(!file)return;try{if(file.size>8*1024*1024)throw new Error("备份文件不能超过 8 MB。");const data=JSON.parse(await file.text());if(!Array.isArray(data.records))throw new Error("请选择有效的问答备份。");const valid=data.records.slice(0,100).filter(x=>x&&typeof x.question==="string"&&typeof x.answer==="string").map(x=>({id:typeof x.id==="string"?x.id:crypto.randomUUID(),question:x.question.slice(0,12000),answer:x.answer.slice(0,100000),role:[...$("#role").options].some(o=>o.value===x.role)?x.role:"运营诊断",createdAt:Number.isFinite(x.createdAt)?x.createdAt:Date.now(),sources:Array.isArray(x.sources)?x.sources.slice(0,20).filter(s=>s&&typeof s.text==="string").map(s=>({source:String(s.source||""),category:String(s.category||""),text:s.text.slice(0,30000)})):[]}));history=[...new Map([...history,...valid].map(x=>[x.id,x])).values()].sort((a,b)=>b.createdAt-a.createdAt).slice(0,100);saveStore("ragHistoryV2",history);renderHistory();notify("问答备份已导入");}catch(error){notify(error.message);}finally{e.target.value="";}};
 function renderDocuments(){const term=$("#knowledge-search").value.trim().toLowerCase();const found=documents.filter(f=>(f.name+" "+(f.title||"")+" "+f.category).toLowerCase().includes(term));$("#knowledge-summary").textContent=found.length+" / "+documents.length+" 份资料";$("#knowledge-files").innerHTML=found.length?found.map(f=>'<article class="knowledge-file"><div><strong>▤ '+esc(f.title||f.name)+'</strong><span>'+esc(f.category||"通用资料")+'</span></div><em>'+Number(f.chunks||0)+' 个片段</em></article>').join(""):'<p class="empty-copy">没有匹配的资料。</p>';}
-async function loadKnowledge(){const button=$("#refresh-knowledge");button.disabled=true;try{const data=await api("/api/knowledge");documents=Array.isArray(data.files)?data.files:[];$("#file-count").textContent=data.fileCount??documents.length;$("#chunk-count").textContent=data.chunkCount??"—";$("#system-status").innerHTML='<b>'+(data.hasApiKey&&data.externalAllowed?"● 知识库已连接":"○ 服务尚未就绪")+'</b><p>'+esc(data.hasApiKey&&data.externalAllowed?"检索资料后生成建议，回答附带引用。":"模型服务需要管理员完成配置。")+'</p>';renderDocuments();}catch(error){$("#system-status").innerHTML='<b>连接暂时中断</b><p>'+esc(error.message)+'</p>';$("#knowledge-files").innerHTML='<p class="empty-copy">暂时无法读取资料，请点击「刷新资料」重试。</p>';}finally{button.disabled=false;}}
+async function loadKnowledge(){const button=$("#refresh-knowledge");button.disabled=true;try{const data=await api("/api/knowledge");documents=Array.isArray(data.files)?data.files:[];$("#storage-status").textContent=data.storage.message;$("#upload-document").disabled=!data.uploadEnabled;$("#upload-status").textContent=data.uploadEnabled?"文件将保存到服务器工作空间。":"请先配置持久数据库，避免资料在重新部署后丢失。";$("#build-index").disabled=!data.semanticConfigured;$("#index-status").textContent=data.semanticConfigured?(data.index?"语义索引："+data.index.status+" · "+(data.index.done||0)+" / "+(data.index.total||0)+(data.index.error?" · "+data.index.error:""):"语义接口已配置，尚未建立索引；建立索引会产生接口调用费用。") : "当前使用 BM25 关键词检索；语义检索需要管理员配置 Embedding 接口和数据库。";$("#file-count").textContent=data.fileCount??documents.length;$("#chunk-count").textContent=data.chunkCount??"—";$("#system-status").innerHTML='<b>'+(data.hasApiKey&&data.externalAllowed?"● 知识库已连接":"○ 服务尚未就绪")+'</b><p>'+esc(data.hasApiKey&&data.externalAllowed?"检索资料后生成建议，回答附带引用。":"模型服务需要管理员完成配置。")+'</p>';renderDocuments();}catch(error){$("#system-status").innerHTML='<b>连接暂时中断</b><p>'+esc(error.message)+'</p>';$("#knowledge-files").innerHTML='<p class="empty-copy">暂时无法读取资料，请点击「刷新资料」重试。</p>';}finally{button.disabled=false;}}
 $("#knowledge-search").oninput=renderDocuments;$("#refresh-knowledge").onclick=loadKnowledge;renderHistory();loadKnowledge();
 const pendingTask=readStore("ragPendingTask",null);if(pendingTask?.id&&typeof pendingTask.query==="string"){ $("#query").value=pendingTask.query;saveDraft();generateAnswer(pendingTask);}
+
+async function syncServerHistory(){
+  try {const data=await api("/api/history");
+    history=[...new Map([...history,...data.records].map(x=>[x.id,x])).values()].sort((a,b)=>b.createdAt-a.createdAt).slice(0,1000);
+    saveStore("ragHistoryV2",history.slice(0,100));renderHistory();$("#storage-status").textContent=data.storage.message;
+  } catch(error){notify("服务器历史暂未同步，本机记录仍保留。 "+error.message);}
+}
+$("#sync-history").onclick=syncServerHistory;
+$("#migrate-history").onclick=async()=>{
+  const records=history.slice(0,100);if(!records.length){notify("没有可上传的记录。");return;}
+  try{const data=await api("/api/history/import",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({records})});notify(data.message);await syncServerHistory();}catch(error){notify(error.message);}
+};
+$("#upload-document").onclick=async()=>{
+  const file=$("#document-file").files[0];if(!file){notify("先选择一份文件。");return;}
+  if(file.size>8*1024*1024){notify("文件不能超过 8 MB。");return;}
+  const button=$("#upload-document");button.disabled=true;$("#upload-status").textContent="正在解析与保存，请稍候…";
+  try{const bytes=new Uint8Array(await file.arrayBuffer());let binary="";for(let i=0;i<bytes.length;i+=8192)binary+=String.fromCharCode(...bytes.subarray(i,i+8192));
+    const data=await api("/api/import",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name:file.name,data:btoa(binary),source:$("#document-source").value,date:$("#document-date").value})});
+    await loadKnowledge();$("#upload-status").textContent=data.message;$("#document-file").value="";
+  }catch(error){$("#upload-status").textContent=error.message;}finally{button.disabled=false;}
+};
+$("#preview-search").onclick=async()=>{
+  const query=$("#retrieval-query").value.trim();if(!query)return;const button=$("#preview-search");button.disabled=true;$("#preview-results").textContent="正在检索…";
+  try{const data=await api("/api/search",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({query})});
+    $("#preview-results").innerHTML='<p>'+esc(data.retrieval.mode)+' · '+data.retrieval.elapsedMs+' ms · '+esc(data.retrieval.warning||"")+'</p>'+data.sources.map((s,i)=>'<details class="source-card"><summary>['+(i+1)+'] '+esc(s.source)+' · 排序分数 '+s.score+'</summary><p>'+esc(s.text)+'</p>'+sourceLinks(s.text)+'</details>').join("")+(data.sources.length?'':'<p>未找到相关资料，请补充知识或调整问题。</p>');
+  }catch(error){$("#preview-results").textContent=error.message;}finally{button.disabled=false;}
+};
+$("#build-index").onclick=async()=>{try{const data=await api("/api/index",{method:"POST",headers:{"Content-Type":"application/json"},body:"{}"});notify(data.message);await loadKnowledge();}catch(error){notify(error.message);}};
+syncServerHistory();
+
+$("#answer").addEventListener("click",event=>{const button=event.target.closest("[data-citation]");if(!button)return;const source=document.getElementById("source-"+button.dataset.citation);if(source){source.open=true;source.scrollIntoView({behavior:matchMedia("(prefers-reduced-motion: reduce)").matches?"instant":"smooth",block:"center"});}else notify("该引用编号没有对应资料，请核对回答。");});
