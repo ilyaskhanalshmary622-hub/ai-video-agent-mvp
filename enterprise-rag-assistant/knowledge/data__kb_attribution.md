@@ -1,4 +1,8 @@
 # 指标口径、归因与增长诊断
+知识编号：KB-6C949D87E5
+整理日期：2026-10-12；整理版本：2026-10-12.2
+核验状态：运营建议；待业务负责人复核
+访问范围：共享工作空间；不代表部门权限已实现
 版本：2026-10-07；适用：跨渠道统一经营账；平台归因不等于因果增量。
 性质：以下为原创运营诊断建议，引用资料仅支持相关机制或约束，不代表官方逐条推荐或真实投放案例。
 
@@ -41,3 +45,14 @@
 排查与解决：能随机时设置对照；不能随机时选尽量可比组并记录局限；统一净收入与时间窗；估计增量而非只读归因。
 判断与验收：小样本和渠道外溢需标明不确定；不要承诺一张ROAS表能证明因果。
 参考依据：[S09 Google Ads：出价算法学习](https://support.google.com/google-ads/answer/10970825?hl=en)；[S13 Shopify：行为报告](https://help.shopify.com/en/manual/reports-and-analytics/shopify-reports/report-types/default-reports/behaviour-reports)；[S19 Google Analytics：归因入门](https://support.google.com/analytics/answer/10596866)；[S29 TikTok：事件监测与诊断](https://ads.tiktok.com/resources/help/article/tiktok-events-manager-monitor-and-diagnose?lang=en)
+
+## ATTRIBUTION-06 三本账怎样对账：订单、支付、平台归因
+依据类型：原创对账操作建议；官方来源仅支持归因和收付款口径机制。
+适用：跨平台店铺分析；整理日期：2026-10-12。
+订单账按唯一业务订单ID去重，标记取消、退款、税费和币种；支付账记录实际收款、退款、拒付与结算时间；平台归因账各自保留窗口、点击或浏览归因和模型设置。
+同一订单可能被多个渠道记功；平台归因销售总和可以大于店铺真实收入，不应强行调成相等或设置必须小于等于店铺收入的验收条件。
+教学示例：一笔100元订单分别被两个平台各计100元，平台合计200元，业务订单仍只有100元。
+验收：业务订单不重复，金额计算可追溯，各系统差异能按时间、归因、退款及税费解释；未解释的差异保留待核查，不捏造归因。
+机制摘要：Shopify有多种归因模型；Any click可对多个触点分别给足记功。销售报告与资金实际流动也不同。
+来源：https://help.shopify.com/en/manual/reports-and-analytics/shopify-reports/report-types/default-reports/marketing-reports
+核对日期：2026-10-12；核对范围：归因模型和销售与收款差异，不代表上述操作建议全部来自官方。

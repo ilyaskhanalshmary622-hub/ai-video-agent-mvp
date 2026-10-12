@@ -14,6 +14,9 @@ from urllib.parse import urlsplit
 from rag_storage import Store
 from rag_retrieval import retrieve, semantic_ready, build_index
 from rag_ingest import convert_upload
+from rag_knowledge import chunks_for, manifest, RELEASE
+from rag_grounding import CONTRACT, validate_answer
+from rag_calculator import calculation_evidence
 
 TASKS = {}
 TASK_LOCK = Lock()
@@ -31,7 +34,16 @@ def run_task(task_id, body):
         history = [item for item in history[-3:] if isinstance(item, dict)] if isinstance(history, list) else []
         chunks = load_documents()
         matches, retrieval = retrieve(query, chunks, STORE)
-        answer = call_model(build_prompt(query, matches, role, history)) if matches else "没有检索到相关资料。"
+        calculation = calculation_evidence(query)
+        if calculation:
+            matches.append(calculation)
+        if matches:
+            answer, grounding = validate_answer(call_model(build_prompt(query, matches, role, history)), matches, query)
+            retrieval["grounding"] = grounding
+            retrieval["warning"] = "；".join(filter(None, [retrieval.get("warning"), grounding.get("warning")]))
+        else:
+            answer = "没有检索到足够相关的资料，请补充业务信息或相关文档。"
+            retrieval["grounding"] = {"status": "insufficient", "reason": "no_retrieval_evidence"}
         result = {
             "answer": answer, "model": DEFAULT_MODEL, "retrieval": retrieval,
             "sources": [{"source": item["source"], "chunkId": item["chunk_id"],
@@ -113,12 +125,7 @@ if index_state and index_state.get("status") == "running":
 
 
 def split_chunks(text):
-    if re.search(r"^版本：\d{4}-\d{2}-\d{2}", text, re.M):
-        # Keep a question, its diagnostic steps and its provenance together.
-        sections = [part.strip() for part in re.split(r"\n(?=## )", text.strip())[1:] if part.strip()]
-        return sections or [text.strip()]
-    parts = re.split(r"\n(?=# )|\n(?=## )|\n\n+", text.strip())
-    return [part.strip() for part in parts if part.strip()]
+    return [chunk["text"] for chunk in chunks_for("document.md", text)]
 
 
 def tokenize(text):
@@ -130,41 +137,27 @@ def tokenize(text):
 
 
 def document_items():
+    registry = manifest(ROOT).get("documents", {})
     for path in sorted(KNOWLEDGE_DIR.glob("*.md")):
+        if registry.get(path.name, {}).get("status") in {"superseded", "archived", "draft"}:
+            continue
         yield path.name, path.read_text(encoding="utf-8")
     for doc in STORE.list("documents", 10000):
         yield doc["name"], doc["text"]
 
 
 def bounded_chunks(text):
-    from llama_index.core.node_parser import SentenceSplitter
-    # Use a deterministic local tokenizer; no first-request tokenizer downloads.
-    splitter = SentenceSplitter(chunk_size=1800, chunk_overlap=180, tokenizer=lambda value: list(value))
-    for section in split_chunks(text):
-        if len(section) <= 2200:
-            yield section
-        else:
-            yield from splitter.split_text(section)
+    yield from split_chunks(text)
 
 
 def load_documents():
     chunks = []
+    registry = manifest(ROOT).get("documents", {})
     for filename, text in document_items():
         category = get_category(filename)
-        for index, chunk in enumerate(bounded_chunks(text), start=1):
-            title = text.splitlines()[0] if text else filename
-            provenance = re.findall(r"^(?:版本：|资料日期：|来源：).+$", text, re.M)[:3]
-            chunk = "\n".join([title, *provenance, chunk])
-            chunks.append(
-                {
-                    "source": filename,
-                    "chunk_id": f"{Path(filename).stem}-{index}",
-                    "category": category,
-                    "text": chunk,
-                    "tokens": tokenize(chunk),
-                    "title_tokens": tokenize(chunk.splitlines()[0]),
-                }
-            )
+        for chunk in chunks_for(filename, text, registry.get(filename)):
+            chunk.update(category=category, tokens=tokenize(chunk["text"]), title_tokens=tokenize(chunk["heading"]))
+            chunks.append(chunk)
     return chunks
 
 
@@ -178,6 +171,7 @@ def knowledge_overview():
     categories = {label: 0 for label in CATEGORY_LABELS.values()}
     total_chunks = 0
     total_chars = 0
+    registry = manifest(ROOT)
     for filename, text in document_items():
         chunks = list(bounded_chunks(text))
         category = get_category(filename)
@@ -191,10 +185,16 @@ def knowledge_overview():
                 "category": category,
                 "chunks": len(chunks),
                 "chars": len(text),
+                "version": registry.get("documents", {}).get(filename, {}).get("version", "未审核"),
+                "reviewStatus": registry.get("documents", {}).get(filename, {}).get("reviewStatus", "用户上传，尚未核验"),
             }
         )
     return {
         "files": files,
+        "knowledgeRelease": RELEASE,
+        "archivedCount": sum(d.get("status") == "superseded" for d in registry.get("documents", {}).values()),
+        "archivedFiles": [{"name": name, "title": d.get("title", name), "replacedBy": d.get("replacedBy", [])}
+                          for name, d in registry.get("documents", {}).items() if d.get("status") == "superseded"],
         "storage": STORE.status(),
         "semanticConfigured": semantic_ready(STORE),
         "index": STORE.get("meta", "index"),
@@ -285,7 +285,7 @@ def build_prompt(query, matches, role, history):
 
 风险
 只写最重要的 1-2 条。
-""".strip()
+""".split("输出格式要求，非常重要：", 1)[0].strip() + "\n\n" + CONTRACT
 
 
 class ModelError(Exception):
@@ -404,8 +404,12 @@ class RagHandler(SimpleHTTPRequestHandler):
                 return
             self.send_json(200, knowledge_overview())
             return
+        if route.startswith("/downloads/"):
+            if not check_password(self.headers):
+                self.send_json(401, {"error": "需要访问密码"})
+                return
         # Only public UI assets are served. Python, env, databases and raw knowledge stay private.
-        allowed = {"/", "/rag_ui.html", "/rag_ui.css", "/rag_ui.js", "/learning.html", "/downloads/cross-border-operations-knowledge-20261007.zip"}
+        allowed = {"/", "/rag_ui.html", "/rag_ui.css", "/rag_ui.js", "/learning.html", "/downloads/cross-border-operations-knowledge-20261012.zip"}
         if route not in allowed:
             self.send_error(404)
             return
@@ -453,12 +457,15 @@ class RagHandler(SimpleHTTPRequestHandler):
 
             chunks = load_documents()
             matches = search(query, chunks)
+            calculation = calculation_evidence(query)
+            if calculation:
+                matches.append(calculation)
             if not matches:
                 self.send_json(200, {"answer": "没有检索到相关资料。", "sources": []})
                 return
 
             prompt = build_prompt(query, matches, role, history)
-            answer = call_model(prompt)
+            answer, grounding = validate_answer(call_model(prompt), matches, query)
             self.send_json(
                 200,
                 {
@@ -469,6 +476,8 @@ class RagHandler(SimpleHTTPRequestHandler):
                         "role": role,
                         "totalChunks": len(chunks),
                         "matchedChunks": len(matches),
+                        "grounding": grounding,
+                        "warning": grounding.get("warning", ""),
                     },
                     "sources": [
                         {
