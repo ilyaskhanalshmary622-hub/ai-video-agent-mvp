@@ -38,7 +38,10 @@ def run_task(task_id, body):
                          "category": item["category"], "text": item["text"]} for item in matches],
         }
         record = {"id": task_id, "question": query, "role": role, "createdAt": time.time()*1000, **result}
-        STORE.put("history", task_id, record)
+        try:
+            STORE.put("history", task_id, record)
+        except Exception:
+            result["retrieval"]["warning"] = "回答已生成，但服务器历史暂未保存。请立即导出回答；本浏览器会保留记录。"
         update = {"status": "completed", "result": result}
     except ModelError as exc:
         update = {"status": "failed", "error": str(exc), "code": exc.code}
@@ -582,8 +585,12 @@ class RagHandler(SimpleHTTPRequestHandler):
                     if not STORE.get("history", record["id"]):
                         STORE.put("history", record["id"], record)
                 self.send_json(200, {"message": "历史记录已保存到共享工作空间。"})
-        except (ValueError, UnicodeError, TypeError):
-            self.send_json(400, {"error": "内容无法处理，请检查格式、大小或服务配置。"})
+        except UnicodeError:
+            self.send_json(400, {"error": "文本文件请保存为 UTF-8 编码。"})
+        except ValueError as exc:
+            self.send_json(400, {"error": str(exc)[:250] or "内容格式不正确。"})
+        except TypeError:
+            self.send_json(400, {"error": "内容格式不正确。"})
         except Exception:
             self.send_json(503, {"error": "暂时无法处理。请检查数据库、文档解析依赖和模型接口配置。"})
 

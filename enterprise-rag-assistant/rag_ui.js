@@ -5,6 +5,7 @@ function readStore(key, fallback) { try { return JSON.parse(localStorage.getItem
 function saveStore(key, value) { try { localStorage.setItem(key, JSON.stringify(value)); return true; } catch { notify("浏览器存储空间不足，请导出记录备份。"); return false; } }
 let history = readStore("ragHistoryV2", []); if (!Array.isArray(history)) history = [];
 history = history.filter(x => x && typeof x.id === "string" && typeof x.question === "string" && typeof x.answer === "string").slice(0,100).map(x => ({...x,sources:Array.isArray(x.sources)?x.sources.filter(s=>s&&typeof s.text==="string"):[]}));
+const localHistoryForMigration = history.slice();
 let memory = readStore("ragConversationMemory", []); if (!Array.isArray(memory)) memory = [];
 memory = memory.filter(x => x && typeof x.question === "string" && typeof x.answer === "string").slice(-6);
 let accessPassword = ""; try { accessPassword = localStorage.getItem("ragAccessPassword") || ""; } catch {}
@@ -134,7 +135,7 @@ async function syncServerHistory(){
 }
 $("#sync-history").onclick=syncServerHistory;
 $("#migrate-history").onclick=async()=>{
-  const records=history.slice(0,100);if(!records.length){notify("没有可上传的记录。");return;}
+  const records=localHistoryForMigration.slice(0,100);if(!records.length){notify("没有可上传的记录。");return;}
   try{const data=await api("/api/history/import",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({records})});notify(data.message);await syncServerHistory();}catch(error){notify(error.message);}
 };
 $("#upload-document").onclick=async()=>{
