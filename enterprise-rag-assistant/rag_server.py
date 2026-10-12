@@ -37,9 +37,9 @@ def run_task(task_id, body):
         calculation = calculation_evidence(query)
         if calculation:
             matches.append(calculation)
-        if calculation and calculation.get("inputError"):
+        if calculation:
             answer = calculation["text"]
-            retrieval["grounding"] = {"status": "invalid_calculation_input"}
+            retrieval["grounding"] = {"status": "invalid_calculation_input" if calculation.get("inputError") else "deterministic_calculation"}
         elif matches:
             answer, grounding = validate_answer(call_model(build_prompt(query, matches, role, history)), matches, query)
             retrieval["grounding"] = grounding
@@ -195,7 +195,7 @@ def knowledge_overview():
     return {
         "files": files,
         "knowledgeRelease": RELEASE,
-        "applicationRelease": "2026-10-12.4",
+        "applicationRelease": "2026-10-12.5",
         "archivedCount": sum(d.get("status") == "superseded" for d in registry.get("documents", {}).values()),
         "archivedFiles": [{"name": name, "title": d.get("title", name), "replacedBy": d.get("replacedBy", [])}
                           for name, d in registry.get("documents", {}).items() if d.get("status") == "superseded"],
@@ -464,9 +464,8 @@ class RagHandler(SimpleHTTPRequestHandler):
             calculation = calculation_evidence(query)
             if calculation:
                 matches.append(calculation)
-                if calculation.get("inputError"):
-                    self.send_json(200, {"answer": calculation["text"], "sources": [], "retrieval": {"grounding": {"status": "invalid_calculation_input"}}})
-                    return
+                self.send_json(200, {"answer": calculation["text"], "sources": [{"source": calculation["source"], "chunkId": calculation["chunk_id"], "category": calculation["category"], "text": calculation["text"]}], "retrieval": {"grounding": {"status": "invalid_calculation_input" if calculation.get("inputError") else "deterministic_calculation"}}})
+                return
             if not matches:
                 self.send_json(200, {"answer": "没有检索到相关资料。", "sources": []})
                 return
