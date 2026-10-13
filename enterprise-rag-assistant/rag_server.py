@@ -41,7 +41,7 @@ def run_task(task_id, body):
             answer = calculation["text"]
             retrieval["grounding"] = {"status": "invalid_calculation_input" if calculation.get("inputError") else "deterministic_calculation"}
         elif matches:
-            answer, grounding = validate_answer(call_model(build_prompt(query, matches, role, history)), matches, query)
+            answer, grounding = validate_answer(call_model(build_prompt(query, matches, role, history)), matches, query, reviewer=call_model)
             retrieval["grounding"] = grounding
             retrieval["warning"] = "；".join(filter(None, [retrieval.get("warning"), grounding.get("warning")]))
         else:
@@ -195,7 +195,7 @@ def knowledge_overview():
     return {
         "files": files,
         "knowledgeRelease": RELEASE,
-        "applicationRelease": "2026-10-12.6",
+        "applicationRelease": "2026-10-13.1",
         "archivedCount": sum(d.get("status") == "superseded" for d in registry.get("documents", {}).values()),
         "archivedFiles": [{"name": name, "title": d.get("title", name), "replacedBy": d.get("replacedBy", [])}
                           for name, d in registry.get("documents", {}).items() if d.get("status") == "superseded"],
@@ -477,7 +477,7 @@ class RagHandler(SimpleHTTPRequestHandler):
                 return
 
             prompt = build_prompt(query, matches, role, history)
-            answer, grounding = validate_answer(call_model(prompt), matches, query)
+            answer, grounding = validate_answer(call_model(prompt), matches, query, reviewer=call_model)
             self.send_json(
                 200,
                 {
