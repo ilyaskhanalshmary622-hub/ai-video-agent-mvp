@@ -15,14 +15,15 @@ def numeric_values(text):
 
 CONTRACT = '''
 只输出一个 JSON 对象，不要 Markdown 代码围栏：
-{"items":[{"kind":"conclusion", "text":"用大白话说明现在优先怎么办，不写引用编号", "evidence":[{"source":1,"quote":"该资料中的连续原文，至少8个字符"}]}],"insufficient":false}
+{"items":[{"kind":"conclusion", "text":"用大白话说明现在优先怎么办，不写引用编号", "evidence":[{"source":1,"sentences":[1,2]}]}],"insufficient":false}
+evidence中source是资料编号，sentences是该资料的可引用正文句编号（从1开始）。只能选择已提供的编号，不要自己抄写quote。
 回答采用老运营带教口吻：先一个conclusion直接结论，再action具体步骤，必要时一个caution提醒。
 kind只能是conclusion、action、caution。简单问题无需凑步骤，复杂问题通常给3到5个action。
 text必须是针对用户问题整理后的易懂建议，不要整段搬运资料。动作先说做什么，再简短解释为什么或适用条件。
 专业术语首次出现时用括号解释大白话；保留原文的否定、前提、生效时间和例外。
 通用经验不得说成公司已批准的制度。原文仅放evidence，正文不要重复堆砌。
-items最多8项；每项只表达一个结论，且必须附直接支持该结论的原文。
-原文必须逐字复制当前提供资料正文，不得用标题、版本日期或无关句子凑证据。
+items最多8项；每项只表达一个结论，必须选中直接支持它的全部句子；结论概括多个动作时要选择所有相关句子。
+不得用标题、版本日期或无关句子凑证据。不添加好听但资料没有的承诺或具体操作。
 资料未支持的建议、金额、公式、天数、阈值、实时状态一律省略。
 引用存在不代表支持结论；逐项检查原文是否真的能推出结论，不得补入原文没有的因果或条件。
 知识不能完整回答时 insufficient=true；完全无依据时 items=[]。
@@ -80,11 +81,21 @@ def validate_item(item, matches):
         raise ValueError("invalid_claim")
     pairs = []
     for entry in evidence:
-        number, quote = entry["source"], entry["quote"]
-        if type(number) is not int or not 1 <= number <= len(matches) or not isinstance(quote, str):
+        number = entry["source"]
+        if type(number) is not int or not 1 <= number <= len(matches):
             raise ValueError("invalid_citation")
         body = matches[number-1].get("body", matches[number-1]["text"])
         sentences = list(evidence_sentences(body))
+        if "sentences" in entry:
+            ids = entry["sentences"]
+            if not isinstance(ids, list) or not 1 <= len(ids) <= 8 or any(type(i) is not int or not 1 <= i <= len(sentences) for i in ids):
+                raise ValueError("invalid_sentence_id")
+            pairs.extend((sentences[i-1], number) for i in dict.fromkeys(ids))
+            continue
+        # Backwards compatibility for earlier JSON outputs and regression fixtures.
+        quote = entry["quote"]
+        if not isinstance(quote, str):
+            raise ValueError("invalid_citation")
         enclosing = []
         # A legitimate citation may cover multiple consecutive sentences.
         for size in range(1, 4):

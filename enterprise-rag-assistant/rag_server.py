@@ -15,7 +15,7 @@ from rag_storage import Store
 from rag_retrieval import retrieve, semantic_ready, build_index
 from rag_ingest import convert_upload
 from rag_knowledge import chunks_for, manifest, RELEASE
-from rag_grounding import CONTRACT, validate_answer
+from rag_grounding import CONTRACT, validate_answer, evidence_sentences
 from rag_calculator import calculation_evidence
 
 TASKS = {}
@@ -195,7 +195,7 @@ def knowledge_overview():
     return {
         "files": files,
         "knowledgeRelease": RELEASE,
-        "applicationRelease": "2026-10-13.1",
+        "applicationRelease": "2026-10-13.2",
         "archivedCount": sum(d.get("status") == "superseded" for d in registry.get("documents", {}).values()),
         "archivedFiles": [{"name": name, "title": d.get("title", name), "replacedBy": d.get("replacedBy", [])}
                           for name, d in registry.get("documents", {}).items() if d.get("status") == "superseded"],
@@ -227,10 +227,12 @@ def search(query, chunks, top_k=5):
 
 
 def build_prompt(query, matches, role, history):
-    context = "\n\n".join(
-        f"[{number}] [资料来源：{item['source']} / {item['chunk_id']} / {item['category']}]\n{item['text']}"
-        for number, item in enumerate(matches, 1)
-    )
+    contexts = []
+    for number, item in enumerate(matches, 1):
+        sentences = list(evidence_sentences(item.get("body", item["text"])))
+        numbered = "\n".join(f"句{i}：{s}" for i, s in enumerate(sentences, 1))
+        contexts.append(f"[{number}] [资料来源：{item['source']} / {item['chunk_id']} / {item['category']}]\n{item['text']}\n可引用正文句（仅使用以下编号）：\n{numbered}")
+    context = "\n\n".join(contexts)
     history_text = "\n".join(
         f"用户：{item.get('question', '')}\n助手：{item.get('answer', '')}"
         for item in history[-3:]
@@ -246,7 +248,7 @@ def build_prompt(query, matches, role, history):
 平台、国家、品类、统计口径和采集日期必须匹配问题；过时或冲突规则要明确说明。
 没有通用的CTR、频次、ROAS或预算增幅阈值。利润判断先统一成本、收入、币种和归因口径。
 需要补充信息时一次只问一个关键问题并给简短编号选项；已有信息足够则直接排查。
-在关键结论后用 [1]、[2] 这样的资料序号标记依据，不得引用未提供的编号；用条目编号或文件名标记依据，引用资料中的官方链接可放在答案末尾，不得编造来源链接。
+引用通过JSON的evidence字段提交，程序会在正文后显示引用按钮，不要在text里加引用序号、句子编号或来源链接。
 素材工作流默认image2生图、seendans2.0生视频；解释用中文，成片语言跟随目标市场。
 
 输出模式说明：
