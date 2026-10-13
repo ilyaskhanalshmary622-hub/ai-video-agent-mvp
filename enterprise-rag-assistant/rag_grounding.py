@@ -21,6 +21,8 @@ evidence中source是资料编号，sentences是该资料的可引用正文句编
 kind只能是conclusion、action、caution。简单问题无需凑步骤，复杂问题通常给3到5个action。
 text必须是针对用户问题整理后的易懂建议，不要整段搬运资料。动作先说做什么，再简短解释为什么或适用条件。
 专业术语首次出现时用括号解释大白话；保留原文的否定、前提、生效时间和例外。
+text不要写第一步、第二步或数字序号，程序负责排序。每项尽量不超过100字。
+禁止擅自增加数字例子、至少几单、个位数样本量、固定等待几天或预算百分比；中文写数字也一样禁止。
 通用经验不得说成公司已批准的制度。原文仅放evidence，正文不要重复堆砌。
 items最多8项；每项只表达一个结论，必须选中直接支持它的全部句子；结论概括多个动作时要选择所有相关句子。
 不得用标题、版本日期或无关句子凑证据。不添加好听但资料没有的承诺或具体操作。
@@ -112,6 +114,9 @@ def validate_item(item, matches):
     support = " ".join(s for s, _ in pairs)
     if not numeric_values(text) <= numeric_values(support):
         raise ValueError("unsupported_number")
+    quantities = re.findall(r"[零一二三四五六七八九十百千万两]+(?:天|小时|分钟|单|笔|元|倍|成|个百分点)|(?:个|十|百|两|三)位数", text)
+    if any(q not in support for q in quantities):
+        raise ValueError("unsupported_quantity")
     if re.search(r"1\s*[÷/]\s*[（(]\s*1\s*[-−－]\s*毛利率", text):
         raise ValueError("invalid_roas_formula")
     if re.search(r"归因.*(?:之和|总和|相加|合计).*(?:≤|小于等于|不得超过|不能超过)", text):
