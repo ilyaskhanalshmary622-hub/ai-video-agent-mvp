@@ -1,0 +1,21 @@
+/* Homepage build intro only; existing page palette and layout preserved. */
+.build-layer{position:fixed;inset:0;z-index:1000;pointer-events:none;overflow:hidden;color:var(--build-accent,#426aff);animation:build-veil .2s ease both}
+.build-grid{position:absolute;inset:0;background-image:linear-gradient(#426aff0b 1px,transparent 1px),linear-gradient(90deg,#426aff0b 1px,transparent 1px);background-size:40px 40px;mask-image:linear-gradient(#0009,#0002)}
+.build-lines{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+.build-outline{fill:none;stroke:currentColor;stroke-width:1;stroke-dasharray:1;stroke-dashoffset:1}
+.build-guide{stroke:currentColor;stroke-width:.6;opacity:.28;stroke-dasharray:3 5}
+.build-handle{fill:var(--bg,#fff);stroke:currentColor;stroke-width:1}
+.build-worker{position:absolute;left:0;top:0;will-change:transform;opacity:0;filter:drop-shadow(0 2px 5px #0002)}
+.build-worker svg{width:24px;height:30px;overflow:visible;fill:currentColor;stroke:white;stroke-width:1.7;stroke-linejoin:round}
+.build-worker span{display:block;position:absolute;left:20px;top:24px;padding:5px 8px;border-radius:3px;background:currentColor;white-space:nowrap}
+.build-worker b{font:500 9px/1.1 ui-monospace,monospace;letter-spacing:.7px;color:white}
+.build-status{position:absolute;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:20px;padding:13px 16px;border:1px solid #426aff38;border-radius:9px;background:#101722f2;box-shadow:0 8px 40px #0002;color:#eef3ff;pointer-events:auto;min-width:300px}
+.theme-light .build-status{background:#fffffff2;color:#192135}
+.build-progress{width:40px;height:3px;background:#426aff25;overflow:hidden}
+.build-progress i{display:block;width:100%;height:100%;background:#426aff;transform:scaleX(0);transform-origin:left}
+.build-status small{font-size:10px;flex:1;letter-spacing:.5px}
+.build-status button{border:0;border-left:1px solid #426aff38;padding:3px 0 3px 13px;color:inherit;background:none;font-size:11px;cursor:pointer;white-space:nowrap}
+@keyframes build-veil{from{opacity:0}to{opacity:1}}
+
+@media(max-width:800px){.build-status{bottom:15px;min-width:280px}.build-worker span{padding:4px 6px}.build-worker b{font-size:8px}}
+@media(prefers-reduced-motion:reduce){.build-layer{display:none}}
